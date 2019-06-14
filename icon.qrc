@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>icon/dive.png</file>
+        <file>icon/log.png</file>
+        <file>icon/lock_close.png</file>
+        <file>icon/lock_open.png</file>
+        <file>icon/lock.png</file>
+        <file>icon/seting.svg</file>
+    </qresource>
+</RCC>
