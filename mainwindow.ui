@@ -21,9 +21,9 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QStackedWidget" name="stackedWidget">
+       <widget class="QStackedWidget" name="stackedWidgetMain">
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="VlcWidgetVideo" name="stackedWidgetVideo">
          <widget class="VlcWidgetVideo" name="vedio" native="true">
@@ -577,19 +577,141 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="stackedWidgetSetings">
-         <widget class="QListWidget" name="listWidget">
-          <property name="geometry">
-           <rect>
-            <x>40</x>
-            <y>30</y>
-            <width>256</width>
-            <height>451</height>
-           </rect>
+        <widget class="QWidget" name="stackedWidgetSettings">
+         <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="1,5">
+          <property name="spacing">
+           <number>0</number>
           </property>
-         </widget>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QListWidget" name="listWidget"/>
+          </item>
+          <item>
+           <widget class="QStackedWidget" name="stackedWidgetConfig">
+            <property name="currentIndex">
+             <number>1</number>
+            </property>
+            <widget class="QWidget" name="stackedWidgetConfigGeneral">
+             <widget class="QLabel" name="label">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>10</y>
+                <width>57</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>General</string>
+              </property>
+             </widget>
+            </widget>
+            <widget class="QWidget" name="stackedWidgetConfigJoystick">
+             <widget class="QLabel" name="label_2">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>10</y>
+                <width>57</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Joystick</string>
+              </property>
+             </widget>
+             <widget class="QSlider" name="axisLeftXSlider">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>50</y>
+                <width>160</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="value">
+               <number>50</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+             </widget>
+             <widget class="QSlider" name="axisLeftYSlider">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>80</y>
+                <width>160</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="value">
+               <number>50</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+             </widget>
+             <widget class="QSlider" name="axisRightXSlider">
+              <property name="geometry">
+               <rect>
+                <x>180</x>
+                <y>50</y>
+                <width>160</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="value">
+               <number>50</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+             </widget>
+             <widget class="QSlider" name="axisRightYSlider">
+              <property name="geometry">
+               <rect>
+                <x>180</x>
+                <y>80</y>
+                <width>160</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="value">
+               <number>50</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+             </widget>
+            </widget>
+           </widget>
+          </item>
+         </layout>
         </widget>
-        <widget class="QWidget" name="stackedWidgetVehicleSetings"/>
        </widget>
       </item>
       <item>
@@ -663,7 +785,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionDive"/>
+   <addaction name="actionVideo"/>
    <addaction name="actionAnalyze"/>
    <addaction name="actionSetings"/>
   </widget>
@@ -703,22 +825,22 @@
     <string>Esc</string>
    </property>
   </action>
-  <action name="actionDive">
+  <action name="actionVideo">
    <property name="icon">
     <iconset resource="icon.qrc">
-     <normaloff>:/icon/icon/dive.png</normaloff>:/icon/icon/dive.png</iconset>
+     <normaloff>:/icon/icon/video.svg</normaloff>:/icon/icon/video.svg</iconset>
    </property>
    <property name="text">
-    <string>Dive</string>
+    <string>Video</string>
    </property>
    <property name="toolTip">
-    <string>Dive</string>
+    <string>Video</string>
    </property>
   </action>
   <action name="actionAnalyze">
    <property name="icon">
     <iconset resource="icon.qrc">
-     <normaloff>:/icon/icon/log.png</normaloff>:/icon/icon/log.png</iconset>
+     <normaloff>:/icon/icon/analysis.svg</normaloff>:/icon/icon/analysis.svg</iconset>
    </property>
    <property name="text">
     <string>Analyze</string>
@@ -730,10 +852,19 @@
   <action name="actionSetings">
    <property name="icon">
     <iconset resource="icon.qrc">
-     <normaloff>:/icon/icon/seting.svg</normaloff>:/icon/icon/seting.svg</iconset>
+     <normaloff>:/icon/icon/setting.svg</normaloff>:/icon/icon/setting.svg</iconset>
    </property>
    <property name="text">
     <string>Setings</string>
+   </property>
+  </action>
+  <action name="actionJoystick">
+   <property name="icon">
+    <iconset resource="icon.qrc">
+     <normaloff>:/icon/icon/joystick_red.svg</normaloff>:/icon/icon/joystick_red.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Joystick</string>
    </property>
   </action>
  </widget>

@@ -5,6 +5,10 @@
         <file>icon/lock_close.png</file>
         <file>icon/lock_open.png</file>
         <file>icon/lock.png</file>
-        <file>icon/seting.svg</file>
+        <file>icon/joystick_red.svg</file>
+        <file>icon/joystick_black.svg</file>
+        <file>icon/setting.svg</file>
+        <file>icon/video.svg</file>
+        <file>icon/analysis.svg</file>
     </qresource>
 </RCC>

@@ -6,8 +6,8 @@
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLabel>
-#include <QMediaPlayer>
-#include <QVideoWidget>
+#include <QGamepadManager>
+#include <QtGamepad/QGamepad>
 
 #include "VLCQtWidgets/WidgetVideo.h"
 #include "VLCQtCore/Common.h"
@@ -36,7 +36,7 @@ public:
 
 private slots:
 
-    void on_actionDive_triggered();
+    void on_actionVideo_triggered();
 
     void on_actionAnalyze_triggered();
 
@@ -54,7 +54,17 @@ private slots:
 
     void on_depthHoldCheckBox_stateChanged(int arg1);
 
-    void on_stackedWidget_currentChanged(int arg1);
+    void on_stackedWidgetMain_currentChanged(int arg1);
+
+    void on_connectedGamepadsChanged();
+
+    void on_listWidget_currentRowChanged(int currentRow);
+
+    // joystick
+    void on_joystick_axisLeftXChanged(double value);
+    void on_joystick_axisLeftYChanged(double value);
+    void on_joystick_axisRightXChanged(double value);
+    void on_joystick_axisRightYChanged(double value);
 
 private:
     Ui::MainWindow *ui;
@@ -73,7 +83,9 @@ private:
     QCheckBox *armCheckBox;
     QLabel *modeLable;
     QComboBox *modeComboBox;
-    QMediaPlayer *videoPlayer;
+
+    QGamepadManager *joystickManager;
+    QGamepad *m_joystick;
 
     VlcInstance *_vlcInstance;
     VlcMedia *_vlcMedia;
@@ -101,6 +113,11 @@ private:
     void setupTimer();
 
     void setupVideo();
+
+    void setupJoystick();
+    void connectJoystickSlots(bool b, QGamepad* m_joystick);
+
+    void setConfigView();
 
     // Timer callback
     void depthPidControl();

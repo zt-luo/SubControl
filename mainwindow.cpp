@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_pitchScene(new QGraphicsScene),
     m_depthChart(new DepthChart),
     m_depthScene(new QGraphicsScene),
+    m_joystick(nullptr),
     currentVehicle(0)
 {
     ui->setupUi(this);
@@ -44,6 +45,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setupTimer();
     setupVideo();
+    setupJoystick();
+    setConfigView();
 }
 
 MainWindow::~MainWindow()
@@ -104,9 +107,9 @@ void MainWindow::setupToolBars()
     QObject::connect (vehicleComboBox, static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
                      this, &MainWindow::on_vehicleComboBox_currentIndexChanged);
 
-    QList<QAction *> actionList;
-    actionList.append(ui->actionDisarm);
-    ui->vehicleToolBar->addActions(actionList);
+    QList<QAction *> actionListDisarm;
+    actionListDisarm.append(ui->actionDisarm);
+    ui->vehicleToolBar->addActions(actionListDisarm);
 
     armCheckBox = new QCheckBox;
     armCheckBox->setText("Arm");
@@ -115,6 +118,12 @@ void MainWindow::setupToolBars()
                      this, &MainWindow::on_armCheckBox_stateChanged);
 
     ui->vehicleToolBar->addSeparator();
+
+    QList<QAction *> actionListJoystick;
+    actionListJoystick.append(ui->actionJoystick);
+    ui->vehicleToolBar->addActions(actionListJoystick);
+//    ui->actionJoystick->setDisabled(true);
+
     modeLable = new QLabel;
     modeLable->setText("Mode: ");
     ui->vehicleToolBar->addWidget(modeLable);
@@ -191,6 +200,131 @@ void MainWindow::setupVideo()
 //    _vlcMedia = new VlcMedia("file:///home/ztluo/video.mp4", _vlcInstance);
     _vlcMedia = new VlcMedia("http://192.168.2.2:2770/vlc.sdp", _vlcInstance);
     _vlcPlayer->open(_vlcMedia);
+}
+
+void MainWindow::setupJoystick()
+{
+    joystickManager = QGamepadManager::instance();
+
+    QList<int> joysticks = joystickManager->connectedGamepads();
+
+    if (!joysticks.isEmpty())
+    {
+        QIcon icon = QIcon(":/icon/icon/joystick_black.svg");
+        ui->actionJoystick->setIcon(icon);
+
+        m_joystick = new QGamepad(*joysticks.begin(), this);
+
+        qDebug() << m_joystick->name() << "deviceId:" << m_joystick->deviceId();
+
+        connectJoystickSlots(true, m_joystick);
+    }
+    else
+    {
+
+    }
+
+    QObject::connect(joystickManager,
+                     &QGamepadManager::connectedGamepadsChanged,
+                     this,
+                     &MainWindow::on_connectedGamepadsChanged);
+}
+
+void MainWindow::connectJoystickSlots(bool b, QGamepad* m_joystick)
+{
+    if (b)
+    {
+        connect(m_joystick, &QGamepad::axisLeftXChanged, this,
+                &MainWindow::on_joystick_axisLeftXChanged);
+
+        connect(m_joystick, &QGamepad::axisLeftYChanged, this,
+                &MainWindow::on_joystick_axisLeftYChanged);
+
+        connect(m_joystick, &QGamepad::axisRightXChanged, this,
+                &MainWindow::on_joystick_axisRightXChanged);
+
+        connect(m_joystick, &QGamepad::axisRightYChanged, this,
+                &MainWindow::on_joystick_axisRightYChanged);
+
+        connect(m_joystick, &QGamepad::buttonAChanged, this, [](bool pressed){
+            qDebug() << "Button A" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonBChanged, this, [](bool pressed){
+            qDebug() << "Button B" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonXChanged, this, [](bool pressed){
+            qDebug() << "Button X" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonYChanged, this, [](bool pressed){
+            qDebug() << "Button Y" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonL1Changed, this, [](bool pressed){
+            qDebug() << "Button L1" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonR1Changed, this, [](bool pressed){
+            qDebug() << "Button R1" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonL2Changed, this, [](double value){
+            qDebug() << "Button L2: " << value;
+        });
+        connect(m_joystick, &QGamepad::buttonR2Changed, this, [](double value){
+            qDebug() << "Button R2: " << value;
+        });
+        connect(m_joystick, &QGamepad::buttonSelectChanged, this, [](bool pressed){
+            qDebug() << "Button Select" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonStartChanged, this, [](bool pressed){
+            qDebug() << "Button Start" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonGuideChanged, this, [](bool pressed){
+            qDebug() << "Button Guide" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonUpChanged, this, [](bool pressed){
+            qDebug() << "Button Up" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonDownChanged, this, [](bool pressed){
+            qDebug() << "Button Down" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonLeftChanged, this, [](bool pressed){
+            qDebug() << "Button Left" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonRightChanged, this, [](bool pressed){
+            qDebug() << "Button Right" << pressed;
+        });
+        connect(m_joystick, &QGamepad::buttonCenterChanged, this, [](bool pressed){
+            qDebug() << "Button Center" << pressed;
+        });
+    }
+    else
+    {
+        m_joystick->disconnect();
+    }
+}
+
+void MainWindow::setConfigView()
+{
+    QFont *m_font = new QFont();
+    m_font->setBold(true);
+    m_font->setPointSize(12);
+
+    QListWidgetItem *buttonGeneral = new QListWidgetItem(ui->listWidget);
+    QIcon iconGeneral = QIcon(":/icon/icon/setting.svg");
+    buttonGeneral->setIcon(iconGeneral);
+    buttonGeneral->setText(" General");
+    buttonGeneral->setFont(*m_font);
+    ui->listWidget->addItem(buttonGeneral);
+
+    QListWidgetItem *buttonJoystick = new QListWidgetItem(ui->listWidget);
+    QIcon iconJoystick = QIcon(":/icon/icon/joystick_black.svg");
+    buttonJoystick->setIcon(iconJoystick);
+    buttonJoystick->setText(" Joystick");
+    buttonJoystick->setFont(*m_font);
+    ui->listWidget->addItem(buttonJoystick);
+
+    ui->listWidget->setCurrentRow(0);
+
+    // switch to vedio view
+    ui->stackedWidgetMain->setCurrentIndex(0);
 }
 
 void MainWindow::depthPidControl()
@@ -552,7 +686,7 @@ void MainWindow::updateNamedValue()
     }
 }
 
-void MainWindow::on_actionDive_triggered()
+void MainWindow::on_actionVideo_triggered()
 {
     ui->mainWindowsVerticalLayout->setStretch(0, 5000);
     ui->textVehicleInfo->verticalScrollBar()->setValue(
@@ -560,7 +694,7 @@ void MainWindow::on_actionDive_triggered()
     ui->textLogInfo->verticalScrollBar()->setValue(
                 ui->textLogInfo->verticalScrollBar()->maximum());
 
-    ui->stackedWidget->setCurrentIndex(0);
+    ui->stackedWidgetMain->setCurrentIndex(0);
 
     ui->vedio->setGeometry(0, 0 , ui->stackedWidgetVideo->width(), ui->stackedWidgetVideo->height());
     ui->qCompass->setGeometry(ui->stackedWidgetVideo->width() - 160, 0, 160, 160);
@@ -575,14 +709,14 @@ void MainWindow::on_actionAnalyze_triggered()
     ui->textLogInfo->verticalScrollBar()->setValue(
                 ui->textLogInfo->verticalScrollBar()->maximum());
 
-    ui->stackedWidget->setCurrentIndex(1);
+    ui->stackedWidgetMain->setCurrentIndex(1);
 
     setChartsSize();
 }
 
 void MainWindow::on_actionSetings_triggered()
 {
-    ui->stackedWidget->setCurrentIndex(2);
+    ui->stackedWidgetMain->setCurrentIndex(2);
     ui->mainWindowsVerticalLayout->setStretch(0, 5000);
     ui->textVehicleInfo->verticalScrollBar()->setValue(
                 ui->textVehicleInfo->verticalScrollBar()->maximum());
@@ -717,7 +851,7 @@ void MainWindow::on_actionDisarm_triggered()
     ui->depthPidCheckBox->setCheckState(Qt::Unchecked);
 }
 
-void MainWindow::on_stackedWidget_currentChanged(int arg1)
+void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
 {
     switch (arg1)
     {
@@ -747,5 +881,91 @@ void MainWindow::on_stackedWidget_currentChanged(int arg1)
 
     default:
         break;
+    }
+}
+
+
+void MainWindow::on_connectedGamepadsChanged()
+{
+    qDebug() << "on_connectedGamepadsChanged";
+
+    QList<int> joysticks = joystickManager->connectedGamepads();
+
+    if (joysticks.isEmpty())
+    {
+        if (m_joystick != nullptr)
+        {
+            connectJoystickSlots(false, m_joystick);
+
+            QIcon icon = QIcon(":/icon/icon/joystick_red.svg");
+            ui->actionJoystick->setIcon(icon);
+
+            delete m_joystick;
+            m_joystick = nullptr;
+        }
+    }
+    else
+    {
+        QIcon icon = QIcon(":/icon/icon/joystick_black.svg");
+        ui->actionJoystick->setIcon(icon);
+
+        m_joystick = new QGamepad(*joysticks.begin(), this);
+
+        qDebug() << m_joystick->name() << "deviceId:" << m_joystick->deviceId();
+
+        connectJoystickSlots(true, m_joystick);
+    }
+}
+
+void MainWindow::on_listWidget_currentRowChanged(int currentRow)
+{
+    ui->stackedWidgetConfig->setCurrentIndex(currentRow);
+}
+
+void MainWindow::on_joystick_axisLeftXChanged(double value)
+{
+    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 2)
+    {
+        ui->axisLeftXSlider->setValue(static_cast<int>(value * 50 + 50));
+    }
+    else
+    {
+        qDebug() << "Left X" << value;
+    }
+}
+
+void MainWindow::on_joystick_axisLeftYChanged(double value)
+{
+    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 2)
+    {
+        ui->axisLeftYSlider->setValue(static_cast<int>(value * 50 + 50));
+    }
+    else
+    {
+        qDebug() << "Left Y" << value;
+    }
+}
+
+void MainWindow::on_joystick_axisRightXChanged(double value)
+{
+    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 2)
+    {
+        ui->axisRightXSlider->setValue(static_cast<int>(value * 50 + 50));
+    }
+    else
+    {
+        qDebug() << "Right X" << value;
+    }
+}
+
+void MainWindow::on_joystick_axisRightYChanged(double value)
+{
+    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 2)
+    {
+        ui->axisRightYSlider->setValue(static_cast<int>(value * 50 + 50));
+    }
+    else
+    {
+        qDebug() << "Right Y" << value;
     }
 }

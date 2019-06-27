@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui charts multimedia multimediawidgets
+QT       += core gui charts gamepad
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
