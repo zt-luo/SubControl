@@ -439,6 +439,11 @@ void MainWindow::depthPidControl()
 
 void MainWindow::fetchStatusTex()
 {
+    if (0 == currentVehicle)
+    {
+        return;
+    }
+
     AS::mavlink_statustext_t *statustxt = nullptr;
     QString severity_tex[8] = {"EMERGENCY", "ALERT",
                                "CRITICAL", "ERROR",
@@ -623,6 +628,8 @@ void MainWindow::vehicleCheck()
     }
     else
     {
+        currentVehicle = 0;
+
         statusTexTimer.stop();
         adiCompassTimer.stop();
         chartTimer.stop();
@@ -727,6 +734,11 @@ void MainWindow::on_actionSetings_triggered()
 
 void MainWindow::on_armCheckBox_stateChanged(int state)
 {
+    if (0 == currentVehicle)
+    {
+        return;
+    }
+
     switch (state)
     {
     case Qt::Checked:
@@ -755,6 +767,11 @@ void MainWindow::on_armCheckBox_stateChanged(int state)
 
 void MainWindow::on_modeComboBox_currentIndexChanged(int index)
 {
+    if (0 == currentVehicle)
+    {
+        return;
+    }
+
     switch (index)
     {
     case 0:
@@ -816,6 +833,11 @@ void MainWindow::on_depthPidCheckBox_stateChanged(int arg1)
 
 void MainWindow::on_depthHoldCheckBox_stateChanged(int arg1)
 {
+    if (0 == currentVehicle)
+    {
+        return;
+    }
+
     if(armCheckBox->checkState() && modeComboBox->currentIndex() == 6)
     {
         if(arg1)
