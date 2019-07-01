@@ -60,11 +60,14 @@ private slots:
 
     void on_listWidget_currentRowChanged(int currentRow);
 
+    void on_actionJoystick_triggered();
+
     // joystick
     void on_joystick_axisLeftXChanged(double value);
     void on_joystick_axisLeftYChanged(double value);
     void on_joystick_axisRightXChanged(double value);
     void on_joystick_axisRightYChanged(double value);
+
 
 private:
     Ui::MainWindow *ui;

@@ -632,6 +632,9 @@
               </property>
              </widget>
              <widget class="QSlider" name="axisLeftXSlider">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="geometry">
                <rect>
                 <x>20</x>
@@ -639,6 +642,12 @@
                 <width>160</width>
                 <height>20</height>
                </rect>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
               </property>
               <property name="value">
                <number>50</number>
@@ -651,6 +660,9 @@
               </property>
              </widget>
              <widget class="QSlider" name="axisLeftYSlider">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="geometry">
                <rect>
                 <x>20</x>
@@ -658,6 +670,12 @@
                 <width>160</width>
                 <height>20</height>
                </rect>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
               </property>
               <property name="value">
                <number>50</number>
@@ -670,6 +688,9 @@
               </property>
              </widget>
              <widget class="QSlider" name="axisRightXSlider">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="geometry">
                <rect>
                 <x>180</x>
@@ -677,6 +698,15 @@
                 <width>160</width>
                 <height>20</height>
                </rect>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="singleStep">
+               <number>1</number>
               </property>
               <property name="value">
                <number>50</number>
@@ -689,6 +719,9 @@
               </property>
              </widget>
              <widget class="QSlider" name="axisRightYSlider">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="geometry">
                <rect>
                 <x>180</x>
@@ -696,6 +729,12 @@
                 <width>160</width>
                 <height>20</height>
                </rect>
+              </property>
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>100</number>
               </property>
               <property name="value">
                <number>50</number>

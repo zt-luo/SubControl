@@ -934,6 +934,12 @@ void MainWindow::on_joystick_axisLeftXChanged(double value)
     }
 }
 
+void MainWindow::on_actionJoystick_triggered()
+{
+    ui->stackedWidgetMain->setCurrentIndex(2);
+    ui->listWidget->setCurrentRow(1);
+}
+
 void MainWindow::on_joystick_axisLeftYChanged(double value)
 {
     if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 2)
