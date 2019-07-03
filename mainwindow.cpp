@@ -190,8 +190,12 @@ void MainWindow::setupTimer()
     namedValueTimer.setInterval(20);
 
     QObject::connect(&vehicleCheckTimer, &QTimer::timeout, this, &MainWindow::vehicleCheck);
-    vehicleCheckTimer.setInterval(1000);
+    vehicleCheckTimer.setInterval(500);
     vehicleCheckTimer.start();
+
+    QObject::connect(&manualControlTimer, &QTimer::timeout, this, &MainWindow::manualControl);
+    manualControlTimer.setInterval(50);
+    manualControlTimer.start();
 }
 
 void MainWindow::setupVideo()
@@ -1045,6 +1049,19 @@ void MainWindow::updateNamedValue()
     }
 }
 
+void MainWindow::manualControl()
+{
+    if (currentVehicle != 0 &&
+            armCheckBox->checkState() == Qt::Checked &&
+            modeComboBox->currentText() == "MANUAL" &&
+            AS::as_api_check_vehicle(currentVehicle))
+    {
+        AS::as_api_manual_control(manual_control.x, manual_control.y,
+                                  manual_control.z, manual_control.r,
+                                  manual_control.buttons);
+    }
+}
+
 void MainWindow::on_actionVideo_triggered()
 {
     ui->mainWindowsVerticalLayout->setStretch(0, 5000);
@@ -1331,7 +1348,9 @@ void MainWindow::on_joystick_axisLeftXChanged(double value)
     }
     else
     {
-        qDebug() << "Left X" << value;
+//        qDebug() << "Left X" << value;
+
+        manual_control.y = static_cast<int16_t>(value * 1000);
     }
 }
 
@@ -1343,7 +1362,9 @@ void MainWindow::on_joystick_axisLeftYChanged(double value)
     }
     else
     {
-        qDebug() << "Left Y" << value;
+//        qDebug() << "Left Y" << value;
+
+        manual_control.x = static_cast<int16_t>(value * 1000);
     }
 }
 
@@ -1355,7 +1376,9 @@ void MainWindow::on_joystick_axisRightXChanged(double value)
     }
     else
     {
-        qDebug() << "Right X" << value;
+//        qDebug() << "Right X" << value;
+
+        manual_control.r = static_cast<int16_t>(value * 1000);
     }
 }
 
@@ -1367,7 +1390,9 @@ void MainWindow::on_joystick_axisRightYChanged(double value)
     }
     else
     {
-        qDebug() << "Right Y" << value;
+//        qDebug() << "Right Y" << value;
+
+        manual_control.z = static_cast<int16_t>(value * 1000);
     }
 }
 

@@ -101,6 +101,18 @@ private:
     QTimer adiCompassTimer;
     QTimer vehicleCheckTimer;
     QTimer namedValueTimer;
+    QTimer manualControlTimer;
+
+    typedef struct
+    {
+        int16_t x;
+        int16_t y;
+        int16_t z;
+        int16_t r;
+        uint16_t buttons;
+    } manual_control_t;
+
+    manual_control_t manual_control;
 
     uint8_t currentVehicle;
 
@@ -131,6 +143,7 @@ private:
     void updateAdiCompass();
     void vehicleCheck();
     void updateNamedValue();
+    void manualControl();
 };
 
 #endif // MAINWINDOW_H
