@@ -38,7 +38,7 @@ private slots:
 
     void on_actionVideo_triggered();
 
-    void on_actionAnalyze_triggered();
+    void on_actionControl_triggered();
 
     void on_armCheckBox_stateChanged(int state);
 
@@ -50,8 +50,6 @@ private slots:
 
     void on_actionSetings_triggered();
 
-    void on_depthPidCheckBox_stateChanged(int arg1);
-
     void on_depthHoldCheckBox_stateChanged(int arg1);
 
     void on_stackedWidgetMain_currentChanged(int arg1);
@@ -62,12 +60,15 @@ private slots:
 
     void on_actionJoystick_triggered();
 
+    void on_lowerControlButton_clicked();
+
+    void on_upperCloseControl_stateChanged(int state);
+
     // joystick
     void on_joystick_axisLeftXChanged(double value);
     void on_joystick_axisLeftYChanged(double value);
     void on_joystick_axisRightXChanged(double value);
     void on_joystick_axisRightYChanged(double value);
-
 
 private:
     Ui::MainWindow *ui;
@@ -94,7 +95,8 @@ private:
     VlcMedia *_vlcMedia;
     VlcMediaPlayer *_vlcPlayer;
 
-    QTimer depthPidTimer, statusTexTimer;
+    QTimer closeControlTimer;
+    QTimer statusTexTimer;
     QTimer chartTimer;
     QTimer adiCompassTimer;
     QTimer vehicleCheckTimer;
@@ -120,10 +122,10 @@ private:
     void setupJoystick();
     void connectJoystickSlots(bool b, QGamepad* m_joystick);
 
-    void setConfigView();
+    void setupConfigView();
 
     // Timer callback
-    void depthPidControl();
+    void closeControl();
     void fetchStatusTex();
     void updateChart();
     void updateAdiCompass();

@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     currentVehicle(0)
 {
     ui->setupUi(this);
+    setWindowIcon(QIcon(":icon/icon/main_icon.svg"));
     setupToolBars();
 
     // yawRoll chart
@@ -46,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setupTimer();
     setupVideo();
     setupJoystick();
-    setConfigView();
+    setupConfigView();
 }
 
 MainWindow::~MainWindow()
@@ -56,8 +57,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
-    static int count;
-    if (count > 0)
+    static bool firstResize = true;
+    if (!firstResize)
     {
         setChartsSize();
         ui->vedio->setGeometry(0, 0 , ui->stackedWidgetVideo->width(), ui->stackedWidgetVideo->height());
@@ -67,7 +68,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
     }
     else
     {
-        count++;
+        firstResize = false;
     }
 
     QMainWindow::resizeEvent(event);
@@ -104,8 +105,9 @@ void MainWindow::setupToolBars()
     vehicleComboBox->model()->setData(index, v, Qt::UserRole - 1);
     vehicleComboBox->setFixedWidth(40);
     ui->vehicleToolBar->addWidget(vehicleComboBox);
-    QObject::connect (vehicleComboBox, static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
-                     this, &MainWindow::on_vehicleComboBox_currentIndexChanged);
+    QObject::connect (vehicleComboBox,
+                      static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
+                      this, &MainWindow::on_vehicleComboBox_currentIndexChanged);
 
     QList<QAction *> actionListDisarm;
     actionListDisarm.append(ui->actionDisarm);
@@ -141,6 +143,8 @@ void MainWindow::setupToolBars()
                      this, &MainWindow::on_modeComboBox_currentIndexChanged);
 
     ui->actionDisarm->setDisabled(true);
+    armCheckBox->setDisabled(true);
+    modeComboBox->setDisabled(true);
 }
 
 void MainWindow::stringToHtml(QString &str, QColor _color)
@@ -166,8 +170,8 @@ void MainWindow::stringToHtml(QString &str, QColor _color)
 
 void MainWindow::setupTimer()
 {
-    QObject::connect(&depthPidTimer, &QTimer::timeout, this, &MainWindow::depthPidControl);
-    depthPidTimer.setInterval(25);
+    QObject::connect(&closeControlTimer, &QTimer::timeout, this, &MainWindow::closeControl);
+    closeControlTimer.setInterval(25);
 //    depthPidTimer.start();
 
     QObject::connect(&statusTexTimer, &QTimer::timeout, this, &MainWindow::fetchStatusTex);
@@ -206,6 +210,11 @@ void MainWindow::setupJoystick()
 {
     joystickManager = QGamepadManager::instance();
 
+    QObject::connect(joystickManager,
+                     &QGamepadManager::connectedGamepadsChanged,
+                     this,
+                     &MainWindow::on_connectedGamepadsChanged);
+
     QList<int> joysticks = joystickManager->connectedGamepads();
 
     if (!joysticks.isEmpty())
@@ -219,32 +228,23 @@ void MainWindow::setupJoystick()
 
         connectJoystickSlots(true, m_joystick);
     }
-    else
-    {
-
-    }
-
-    QObject::connect(joystickManager,
-                     &QGamepadManager::connectedGamepadsChanged,
-                     this,
-                     &MainWindow::on_connectedGamepadsChanged);
 }
 
 void MainWindow::connectJoystickSlots(bool b, QGamepad* m_joystick)
 {
     if (b)
     {
-        connect(m_joystick, &QGamepad::axisLeftXChanged, this,
-                &MainWindow::on_joystick_axisLeftXChanged);
+        QObject::connect(m_joystick, &QGamepad::axisLeftXChanged, this,
+                         &MainWindow::on_joystick_axisLeftXChanged);
 
-        connect(m_joystick, &QGamepad::axisLeftYChanged, this,
-                &MainWindow::on_joystick_axisLeftYChanged);
+        QObject::connect(m_joystick, &QGamepad::axisLeftYChanged, this,
+                         &MainWindow::on_joystick_axisLeftYChanged);
 
-        connect(m_joystick, &QGamepad::axisRightXChanged, this,
-                &MainWindow::on_joystick_axisRightXChanged);
+        QObject::connect(m_joystick, &QGamepad::axisRightXChanged, this,
+                         &MainWindow::on_joystick_axisRightXChanged);
 
-        connect(m_joystick, &QGamepad::axisRightYChanged, this,
-                &MainWindow::on_joystick_axisRightYChanged);
+        QObject::connect(m_joystick, &QGamepad::axisRightYChanged, this,
+                         &MainWindow::on_joystick_axisRightYChanged);
 
         connect(m_joystick, &QGamepad::buttonAChanged, this, [](bool pressed){
             qDebug() << "Button A" << pressed;
@@ -301,7 +301,7 @@ void MainWindow::connectJoystickSlots(bool b, QGamepad* m_joystick)
     }
 }
 
-void MainWindow::setConfigView()
+void MainWindow::setupConfigView()
 {
     QFont *m_font = new QFont();
     m_font->setBold(true);
@@ -324,117 +324,462 @@ void MainWindow::setConfigView()
     ui->listWidget->setCurrentRow(0);
 
     // switch to vedio view
+    ui->stackedWidgetMain->setCurrentIndex(1);
     ui->stackedWidgetMain->setCurrentIndex(0);
 }
 
-void MainWindow::depthPidControl()
+void MainWindow::closeControl()
 {
 //    AS::as_api_set_mode(1, AS::LAB_REMOTE);
-    double zD, kP, kI, kD;
-
-    zD = ui->doubleSpinBoxZd->value();
-    kP = ui->doubleSpinBoxKp->value();
-    kI = ui->doubleSpinBoxKi->value();
-    kD = ui->doubleSpinBoxKd->value();
-
-    int pwm_out = 1500, pwm_limit = 150;
-
-    uint32_t dt = 25; // ms
-
-    double I_term_max = -600; // I_term_min and max prevent integral windup by saturating the I_term
-    double I_term_min = -700; //
-    double z_vel_lim = 1;     // [m/s] this is added to prevent setpoint kick in the derivative term
-
-    double P_term = 0;
-    double I_term = 0;
-    double D_term = 0;
-    double z_now = 0; // depth in this iteration
-    double z_old = 0; // depth in the previous iteration
-    double z_err = 0; // declare the depth error
-    double z_vel = 0; // declare the derivative term for z
-
-    if(0 == AS::as_api_check_vehicle(currentVehicle))
+    // check current mode
+    if (modeComboBox->currentText() != "LAB_REMOTE")
     {
+        return;
     }
-    else
+
+    // controlor output
+    int depth_pwm_out = 0,
+            yaw_pwm_out = 0, pitch_pwm_out = 0, roll_pwm_out = 0,
+            x_pwm_out  = 0, y_pwm_out = 0;
+
+    static double depth_now;   // depth in this iteration, m
+    static double yaw_now;     // yaw in this iteration, degree
+    static double pitch_now;   // pitch in this iteration, degree
+    static double roll_now;    // roll in this iteration, degree
+
+    static double depth_old;   // depth in the previous iteration
+    static double yaw_old;     // yaw in the previous iteration
+    static double pitch_old;   // pitch in the previous iteration
+    static double roll_old;    // roll in the previous iteration
+
+    depth_old = depth_now;
+    yaw_old = yaw_now;
+    pitch_old = pitch_now;
+    roll_old = roll_now;
+
+    if(0 != AS::as_api_check_vehicle(currentVehicle))
     {
         AS::Vehicle_Data_t *vehicle_data;
         vehicle_data = AS::as_api_get_vehicle_data(currentVehicle);
         if (nullptr != vehicle_data)
         {
-            z_now = vehicle_data->alt / 1000.0; // m
+            const float degreePerRad = 180.0f / 3.1415926f;
+            depth_now = vehicle_data->alt / 1000.0;          // m
+            yaw_now = vehicle_data->yaw * degreePerRad;      // degree
+            pitch_now = vehicle_data->pitch * degreePerRad;  // degree
+            roll_now = vehicle_data->roll * degreePerRad;    // degree
         }
     }
 
-    z_err = zD - z_now;
-    z_vel = (z_now - z_old) / (dt / 1000);
-
-    // clamp the value of z_vel
-    if (z_vel < -z_vel_lim)
+    // depth controlor start
+    if (!ui->depthPidCheckBox->checkState())
     {
-        z_vel = -z_vel_lim;
-    }
-    if (z_vel > z_vel_lim)
-    {
-        z_vel = z_vel_lim;
-    }
-
-    P_term = kP * z_err;
-    if (abs(kI) < 0.0000001)
-    {
-        I_term = 0;
+        depth_pwm_out = 0;
     }
     else
     {
-        if (zD < -0.2) // dont do this while disarm
+        double depth_expected, kP, kI, kD;
+
+        depth_expected = ui->doubleSpinBoxDe->value();
+
+        kP = ui->doubleSpinBoxKpDepth->value();
+        kI = ui->doubleSpinBoxKiDepth->value();
+        kD = ui->doubleSpinBoxKdDepth->value();
+
+        int pwm_limit = 150;
+
+        uint32_t dt = 25; // ms
+
+        // I_term_min and max prevent integral windup by saturating the I_term
+        double I_term_max = -600;
+        double I_term_min = -700;
+        // [m/s] this is added to prevent setpoint kick in the derivative term
+        double depth_vel_lim = 1;
+
+        double P_term = 0;
+        double I_term = 0;
+        double D_term = 0;
+
+        double depth_err = 0; // declare the depth error
+        double depth_vel = 0; // declare the derivative term for z
+
+        depth_err = depth_expected - depth_now;
+
+        // P_term
+        P_term = kP * depth_err;
+
+        // I_term
+        if (abs(kI) < 0.0000001)
         {
-            I_term = I_term + kI * z_err * (dt / 1000);
-            // clamp the value of I_term
-            if (I_term < I_term_min)
+            I_term = 0;
+        }
+        else
+        {
+            if (depth_expected < -0.2) // dont do this while disarm
             {
-                I_term = I_term_min;
-            }
-            if (I_term > I_term_max)
-            {
-                I_term = I_term_max;
+                I_term = I_term + kI * depth_err * (dt / 1000);
+                // clamp the value of I_term
+                if (I_term < I_term_min)
+                {
+                    I_term = I_term_min;
+                }
+                if (I_term > I_term_max)
+                {
+                    I_term = I_term_max;
+                }
             }
         }
-    }
-    D_term = kD * z_vel;
 
-    pwm_out = static_cast<int>(P_term + I_term + D_term);
+        // D_term
+        depth_vel = (depth_now - depth_old) / (dt / 1000);  //PI-D
+//        depth_vel = depth_err / (dt / 1000);  //PID
+        // clamp the value of z_vel
+        if (depth_vel < -depth_vel_lim)
+        {
+            depth_vel = -depth_vel_lim;
+        }
+        if (depth_vel > depth_vel_lim)
+        {
+            depth_vel = depth_vel_lim;
+        }
+        D_term = kD * depth_vel;
 
-    // clamp the value of pwm_out
-    if (pwm_out < -pwm_limit)
-    {
-        pwm_out = -pwm_limit;
-    }
-    if (pwm_out > pwm_limit)
-    {
-        pwm_out = pwm_limit;
-    }
+        depth_pwm_out = static_cast<int>(P_term + I_term + D_term);
 
-    if (ui->depthPidCheckBox->checkState())
+        // clamp the value of depth_pwm_out
+        if (depth_pwm_out < -pwm_limit)
+        {
+            depth_pwm_out = -pwm_limit;
+        }
+        if (depth_pwm_out > pwm_limit)
+        {
+            depth_pwm_out = pwm_limit;
+        }
+
+    } // depth controlor end
+
+    // yaw controlor start
+    if (!ui->yawPidCheckBox->checkState())
     {
-        AS::as_api_send_rc_channels_override(currentVehicle, 1,
-                                             1500, 1500,
-                                             1500, 1500,
-                                             static_cast<uint16_t>(1500 + pwm_out),
-                                             static_cast<uint16_t>(1500 - pwm_out),
-                                             static_cast<uint16_t>(1500 - pwm_out),
-                                             static_cast<uint16_t>(1500 + pwm_out));
+        yaw_pwm_out = 0;
     }
     else
     {
-        if(0 != AS::as_api_check_vehicle(currentVehicle))
+        double yaw_expected, kP, kI, kD;
+
+        yaw_expected = ui->doubleSpinBoxYe->value();
+
+        kP = ui->doubleSpinBoxKpYaw->value();
+        kI = ui->doubleSpinBoxKiYaw->value();
+        kD = ui->doubleSpinBoxKdYaw->value();
+
+        int pwm_limit = 150;
+
+        uint32_t dt = 25; // ms
+
+        // I_term_min and max prevent integral windup by saturating the I_term
+        double I_term_max = -600;
+        double I_term_min = -700;
+        // [degree/s] this is added to prevent setpoint kick in the derivative term
+        double yaw_vel_lim = 1;
+
+        double P_term = 0;
+        double I_term = 0;
+        double D_term = 0;
+
+        double yaw_err = 0; // declare the depth error
+        double yaw_vel = 0; // declare the derivative term for z
+
+        yaw_err = yaw_expected - yaw_now;
+
+        // P_term
+        P_term = kP * yaw_err;
+
+        // I_term
+        if (abs(kI) < 0.0000001)
         {
-            AS::as_api_send_rc_channels_override(currentVehicle, 1, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500);
+            I_term = 0;
         }
+        else
+        {
+            if (yaw_expected < -0.2) // dont do this while disarm
+            {
+                I_term = I_term + kI * yaw_err * (dt / 1000);
+                // clamp the value of I_term
+                if (I_term < I_term_min)
+                {
+                    I_term = I_term_min;
+                }
+                if (I_term > I_term_max)
+                {
+                    I_term = I_term_max;
+                }
+            }
+        }
+
+        // D_term
+        yaw_vel = (yaw_now - yaw_old) / (dt / 1000);  //PI-D
+//        yaw_vel = yaw_err / (dt / 1000);  //PID
+        // clamp the value of z_vel
+        if (yaw_vel < -yaw_vel_lim)
+        {
+            yaw_vel = -yaw_vel_lim;
+        }
+        if (yaw_vel > yaw_vel_lim)
+        {
+            yaw_vel = yaw_vel_lim;
+        }
+        D_term = kD * yaw_vel;
+
+        yaw_pwm_out = static_cast<int>(P_term + I_term + D_term);
+
+        // clamp the value of yaw_pwm_out
+        if (yaw_pwm_out < -pwm_limit)
+        {
+            yaw_pwm_out = -pwm_limit;
+        }
+        if (yaw_pwm_out > pwm_limit)
+        {
+            yaw_pwm_out = pwm_limit;
+        }
+    } // yaw controlor end
+
+    // pitch controlor start
+    if (!ui->pitchPidCheckBox->checkState())
+    {
+        pitch_pwm_out = 0;
     }
+    else
+    {
+        double pitch_expected, kP, kI, kD;
+
+        pitch_expected = ui->doubleSpinBoxPe->value();
+
+        kP = ui->doubleSpinBoxKpPitch->value();
+        kI = ui->doubleSpinBoxKiPitch->value();
+        kD = ui->doubleSpinBoxKdPitch->value();
+
+        int pwm_limit = 150;
+
+        uint32_t dt = 25; // ms
+
+        // I_term_min and max prevent integral windup by saturating the I_term
+        double I_term_max = -600;
+        double I_term_min = -700;
+        // [degree/s] this is added to prevent setpoint kick in the derivative term
+        double pitch_vel_lim = 1;
+
+        double P_term = 0;
+        double I_term = 0;
+        double D_term = 0;
+
+        double pitch_err = 0; // declare the depth error
+        double pitch_vel = 0; // declare the derivative term for z
+
+        pitch_err = pitch_expected - pitch_now;
+
+        // P_term
+        P_term = kP * pitch_err;
+
+        // I_term
+        if (abs(kI) < 0.0000001)
+        {
+            I_term = 0;
+        }
+        else
+        {
+            if (pitch_expected < -0.2) // dont do this while disarm
+            {
+                I_term = I_term + kI * pitch_err * (dt / 1000);
+                // clamp the value of I_term
+                if (I_term < I_term_min)
+                {
+                    I_term = I_term_min;
+                }
+                if (I_term > I_term_max)
+                {
+                    I_term = I_term_max;
+                }
+            }
+        }
+
+        // D_term
+        pitch_vel = (pitch_now - pitch_old) / (dt / 1000);  //PI-D
+//        pitch_vel = pitch_err / (dt / 1000);  //PID
+        // clamp the value of z_vel
+        if (pitch_vel < -pitch_vel_lim)
+        {
+            pitch_vel = -pitch_vel_lim;
+        }
+        if (pitch_vel > pitch_vel_lim)
+        {
+            pitch_vel = pitch_vel_lim;
+        }
+        D_term = kD * pitch_vel;
+
+        pitch_pwm_out = static_cast<int>(P_term + I_term + D_term);
+
+        // clamp the value of yaw_pwm_out
+        if (pitch_pwm_out < -pwm_limit)
+        {
+            pitch_pwm_out = -pwm_limit;
+        }
+        if (pitch_pwm_out > pwm_limit)
+        {
+            pitch_pwm_out = pwm_limit;
+        }
+    } // pitch controlor end
+
+    // roll controlor start
+    if (!ui->rollPidCheckBox->checkState())
+    {
+        roll_pwm_out = 0;
+    }
+    else
+    {
+        double roll_expected, kP, kI, kD;
+
+        roll_expected = ui->doubleSpinBoxRe->value();
+
+        kP = ui->doubleSpinBoxKpRoll->value();
+        kI = ui->doubleSpinBoxKiRoll->value();
+        kD = ui->doubleSpinBoxKdRoll->value();
+
+        int pwm_limit = 150;
+
+        uint32_t dt = 25; // ms
+
+        // I_term_min and max prevent integral windup by saturating the I_term
+        double I_term_max = -600;
+        double I_term_min = -700;
+        // [degree/s] this is added to prevent setpoint kick in the derivative term
+        double roll_vel_lim = 1;
+
+        double P_term = 0;
+        double I_term = 0;
+        double D_term = 0;
+
+        double roll_err = 0; // declare the depth error
+        double roll_vel = 0; // declare the derivative term for z
+
+        roll_err = roll_expected - roll_now;
+
+        // P_term
+        P_term = kP * roll_err;
+
+        // I_term
+        if (abs(kI) < 0.0000001)
+        {
+            I_term = 0;
+        }
+        else
+        {
+            if (roll_expected < -0.2) // dont do this while disarm
+            {
+                I_term = I_term + kI * roll_err * (dt / 1000);
+                // clamp the value of I_term
+                if (I_term < I_term_min)
+                {
+                    I_term = I_term_min;
+                }
+                if (I_term > I_term_max)
+                {
+                    I_term = I_term_max;
+                }
+            }
+        }
+
+        // D_term
+        roll_vel = (roll_now - roll_old) / (dt / 1000);  //PI-D
+//        roll_vel = roll_err / (dt / 1000);  //PID
+        // clamp the value of z_vel
+        if (roll_vel < -roll_vel_lim)
+        {
+            roll_vel = -roll_vel_lim;
+        }
+        if (roll_vel > roll_vel_lim)
+        {
+            roll_vel = roll_vel_lim;
+        }
+        D_term = kD * roll_vel;
+
+        roll_pwm_out = static_cast<int>(P_term + I_term + D_term);
+
+        // clamp the value of yaw_pwm_out
+        if (roll_pwm_out < -pwm_limit)
+        {
+            roll_pwm_out = -pwm_limit;
+        }
+        if (roll_pwm_out > pwm_limit)
+        {
+            roll_pwm_out = pwm_limit;
+        }
+    } // roll controlor end
+
+    // x movement start
+    {
+        int pwm_limit = 150;
+
+        int x_input = 0;
+
+        x_pwm_out = x_input * 150;
+
+        // clamp the value of x_pwm_out
+        if (x_pwm_out < -pwm_limit)
+        {
+            x_pwm_out = -pwm_limit;
+        }
+        if (x_pwm_out > pwm_limit)
+        {
+            x_pwm_out = pwm_limit;
+        }
+    } // x movement end
+
+    // y movement start
+    {
+        int pwm_limit = 150;
+
+        int y_input = 0;
+
+        x_pwm_out = y_input * 150;
+
+        // clamp the value of y_pwm_out
+        if (y_pwm_out < -pwm_limit)
+        {
+            y_pwm_out = -pwm_limit;
+        }
+        if (y_pwm_out > pwm_limit)
+        {
+            y_pwm_out = pwm_limit;
+        }
+    } // y movement end
+
+    int motor_pwm[8] = {1500};
+
+    motor_pwm[0] = 1500 - yaw_pwm_out + x_pwm_out - y_pwm_out;
+    motor_pwm[1] = 1500 + yaw_pwm_out + x_pwm_out + y_pwm_out;
+    motor_pwm[2] = 1500 - yaw_pwm_out + x_pwm_out + y_pwm_out;
+    motor_pwm[3] = 1500 + yaw_pwm_out + x_pwm_out - y_pwm_out;
+
+    motor_pwm[4] = 1500 + depth_pwm_out + pitch_pwm_out + roll_pwm_out;
+    motor_pwm[5] = 1500 - depth_pwm_out - pitch_pwm_out + roll_pwm_out;
+    motor_pwm[6] = 1500 - depth_pwm_out + pitch_pwm_out - roll_pwm_out;
+    motor_pwm[7] = 1500 + depth_pwm_out - pitch_pwm_out - roll_pwm_out;
+
+    AS::as_api_send_rc_channels_override(
+                currentVehicle, 1,
+                static_cast<uint16_t>(motor_pwm[0]),
+                static_cast<uint16_t>(motor_pwm[1]),
+                static_cast<uint16_t>(motor_pwm[2]),
+                static_cast<uint16_t>(motor_pwm[3]),
+                static_cast<uint16_t>(motor_pwm[4]),
+                static_cast<uint16_t>(motor_pwm[5]),
+                static_cast<uint16_t>(motor_pwm[6]),
+                static_cast<uint16_t>(motor_pwm[7]));
 
 
-    QString out_str;
-    ui->textLogInfo->append(out_str.sprintf("%d", pwm_out));
+//    QString out_str;
+//    ui->textLogInfo->append(out_str.sprintf("%d", depth_pwm_out));
 }
 
 void MainWindow::fetchStatusTex()
@@ -494,10 +839,11 @@ void MainWindow::updateChart()
 
         if (nullptr != vehicle_data)
         {
-            #define D_PER_RAD (180.0f / 3.1415926f)
-            yaw = vehicle_data->yaw * D_PER_RAD;
-            roll = vehicle_data->roll * D_PER_RAD;
-            pitch = vehicle_data->pitch * D_PER_RAD;
+            const float degreePerRad = 180.0f / 3.1415926f;
+
+            yaw = vehicle_data->yaw * degreePerRad;
+            roll = vehicle_data->roll * degreePerRad;
+            pitch = vehicle_data->pitch * degreePerRad;
             depth = vehicle_data->alt / 1000.0f;
             time_us = vehicle_data->monotonic_time;
         }
@@ -625,6 +971,9 @@ void MainWindow::vehicleCheck()
         adiCompassTimer.start();
         chartTimer.start();
         namedValueTimer.start();
+
+        armCheckBox->setEnabled(true);
+        modeComboBox->setEnabled(true);
     }
     else
     {
@@ -636,6 +985,9 @@ void MainWindow::vehicleCheck()
         namedValueTimer.stop();
 
         vehicleComboBox->setCurrentIndex(0);
+
+        armCheckBox->setDisabled(true);
+        modeComboBox->setDisabled(true);
     }
 }
 
@@ -708,7 +1060,7 @@ void MainWindow::on_actionVideo_triggered()
     ui->qADI->setGeometry(ui->stackedWidgetVideo->width() - 320, 0, 160, 160);
 }
 
-void MainWindow::on_actionAnalyze_triggered()
+void MainWindow::on_actionControl_triggered()
 {
     ui->mainWindowsVerticalLayout->setStretch(0, 4);
     ui->textVehicleInfo->verticalScrollBar()->setValue(
@@ -723,7 +1075,7 @@ void MainWindow::on_actionAnalyze_triggered()
 
 void MainWindow::on_actionSetings_triggered()
 {
-    ui->stackedWidgetMain->setCurrentIndex(2);
+    ui->stackedWidgetMain->setCurrentIndex(3);
     ui->mainWindowsVerticalLayout->setStretch(0, 5000);
     ui->textVehicleInfo->verticalScrollBar()->setValue(
                 ui->textVehicleInfo->verticalScrollBar()->maximum());
@@ -743,18 +1095,15 @@ void MainWindow::on_armCheckBox_stateChanged(int state)
     {
     case Qt::Checked:
         ui->actionDisarm->setDisabled(false);
-        ui->depthPidCheckBox->setEnabled(true);
-        ui->depthHoldCheckBox->setEnabled(true);
+        ui->upperCloseControl->setEnabled(true);
 
         AS::as_api_vehicle_arm(currentVehicle, 1);
         break;
 
     case Qt::Unchecked:
         ui->actionDisarm->setDisabled(true);
-        ui->depthPidCheckBox->setCheckState(Qt::Unchecked);
-        ui->depthPidCheckBox->setEnabled(false);
-        ui->depthHoldCheckBox->setCheckState(Qt::Unchecked);
-        ui->depthHoldCheckBox->setEnabled(false);
+        ui->upperCloseControl->setCheckState(Qt::Unchecked);
+        ui->upperCloseControl->setEnabled(false);
 
         AS::as_api_vehicle_disarm(currentVehicle, 1);
         break;
@@ -769,6 +1118,7 @@ void MainWindow::on_modeComboBox_currentIndexChanged(int index)
 {
     if (0 == currentVehicle)
     {
+        modeComboBox->setCurrentIndex(0);
         return;
     }
 
@@ -806,29 +1156,8 @@ void MainWindow::on_modeComboBox_currentIndexChanged(int index)
 
 void MainWindow::on_vehicleComboBox_currentIndexChanged(const QString &index)
 {
-    qDebug() << index.toInt();
+//    qDebug() << index.toInt();
     currentVehicle = static_cast<uint8_t>(index.toInt());
-}
-
-
-void MainWindow::on_depthPidCheckBox_stateChanged(int arg1)
-{
-    if(armCheckBox->checkState() && modeComboBox->currentIndex() == 5)
-    {
-        if(arg1)
-        {
-            depthPidTimer.start();
-        }
-        else
-        {
-            depthPidTimer.stop();
-            // clear I term
-        }
-    }
-    else
-    {
-        ui->depthPidCheckBox->setCheckState(Qt::Unchecked);
-    }
 }
 
 void MainWindow::on_depthHoldCheckBox_stateChanged(int arg1)
@@ -883,6 +1212,15 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
                     ui->textVehicleInfo->verticalScrollBar()->maximum());
         ui->textLogInfo->verticalScrollBar()->setValue(
                     ui->textLogInfo->verticalScrollBar()->maximum());
+
+        ui->actionVideo->setChecked(true);
+        ui->actionControl->setChecked(false);
+        ui->actionSetings->setChecked(false);
+
+        ui->actionVideo->setDisabled(true);
+        ui->actionControl->setDisabled(false);
+        ui->actionSetings->setDisabled(false);
+
         break;
 
     case 1:
@@ -891,14 +1229,49 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
                     ui->textVehicleInfo->verticalScrollBar()->maximum());
         ui->textLogInfo->verticalScrollBar()->setValue(
                     ui->textLogInfo->verticalScrollBar()->maximum());
+
+        ui->actionVideo->setChecked(false);
+        ui->actionControl->setChecked(true);
+        ui->actionSetings->setChecked(false);
+
+        ui->actionVideo->setDisabled(false);
+        ui->actionControl->setDisabled(true);
+        ui->actionSetings->setDisabled(false);
+
         break;
 
     case 2:
+        ui->mainWindowsVerticalLayout->setStretch(0, 4);
+        ui->textVehicleInfo->verticalScrollBar()->setValue(
+                    ui->textVehicleInfo->verticalScrollBar()->maximum());
+        ui->textLogInfo->verticalScrollBar()->setValue(
+                    ui->textLogInfo->verticalScrollBar()->maximum());
+
+        ui->actionVideo->setChecked(false);
+        ui->actionControl->setChecked(true);
+        ui->actionSetings->setChecked(false);
+
+        ui->actionVideo->setDisabled(false);
+        ui->actionControl->setDisabled(true);
+        ui->actionSetings->setDisabled(false);
+
+        break;
+
+    case 3:
         ui->mainWindowsVerticalLayout->setStretch(0, 5000);
         ui->textVehicleInfo->verticalScrollBar()->setValue(
                     ui->textVehicleInfo->verticalScrollBar()->maximum());
         ui->textLogInfo->verticalScrollBar()->setValue(
                     ui->textLogInfo->verticalScrollBar()->maximum());
+
+        ui->actionVideo->setChecked(false);
+        ui->actionControl->setChecked(false);
+        ui->actionSetings->setChecked(true);
+
+        ui->actionVideo->setDisabled(false);
+        ui->actionControl->setDisabled(false);
+        ui->actionSetings->setDisabled(true);
+
         break;
 
     default:
@@ -944,9 +1317,15 @@ void MainWindow::on_listWidget_currentRowChanged(int currentRow)
     ui->stackedWidgetConfig->setCurrentIndex(currentRow);
 }
 
+void MainWindow::on_actionJoystick_triggered()
+{
+    ui->stackedWidgetMain->setCurrentIndex(3);
+    ui->listWidget->setCurrentRow(1);
+}
+
 void MainWindow::on_joystick_axisLeftXChanged(double value)
 {
-    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 2)
+    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 3)
     {
         ui->axisLeftXSlider->setValue(static_cast<int>(value * 50 + 50));
     }
@@ -956,15 +1335,9 @@ void MainWindow::on_joystick_axisLeftXChanged(double value)
     }
 }
 
-void MainWindow::on_actionJoystick_triggered()
-{
-    ui->stackedWidgetMain->setCurrentIndex(2);
-    ui->listWidget->setCurrentRow(1);
-}
-
 void MainWindow::on_joystick_axisLeftYChanged(double value)
 {
-    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 2)
+    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 3)
     {
         ui->axisLeftYSlider->setValue(static_cast<int>(value * 50 + 50));
     }
@@ -976,7 +1349,7 @@ void MainWindow::on_joystick_axisLeftYChanged(double value)
 
 void MainWindow::on_joystick_axisRightXChanged(double value)
 {
-    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 2)
+    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 3)
     {
         ui->axisRightXSlider->setValue(static_cast<int>(value * 50 + 50));
     }
@@ -988,12 +1361,61 @@ void MainWindow::on_joystick_axisRightXChanged(double value)
 
 void MainWindow::on_joystick_axisRightYChanged(double value)
 {
-    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 2)
+    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 3)
     {
         ui->axisRightYSlider->setValue(static_cast<int>(value * 50 + 50));
     }
     else
     {
         qDebug() << "Right Y" << value;
+    }
+}
+
+void MainWindow::on_lowerControlButton_clicked()
+{
+    ui->stackedWidgetMain->setCurrentIndex(2);
+}
+
+void MainWindow::on_upperCloseControl_stateChanged(int state)
+{
+    // set LAB_REMOTE mode
+    modeComboBox->setCurrentIndex(5);
+
+    std::string info("");
+    info = ui->lineEditTestInfo->text().toStdString();
+    std::string note("");
+    note = ui->lineEditTestNote->text().toStdString();
+
+    switch (state)
+    {
+    case Qt::Checked:
+        ui->depthPidCheckBox->setEnabled(true);
+        ui->yawPidCheckBox->setEnabled(true);
+        ui->pitchPidCheckBox->setEnabled(true);
+        ui->rollPidCheckBox->setEnabled(true);
+
+        closeControlTimer.start();
+        AS::as_api_test_start(info.c_str(), note.c_str());
+
+        break;
+
+    case Qt::Unchecked:
+        ui->depthPidCheckBox->setCheckState(Qt::Unchecked);
+        ui->yawPidCheckBox->setCheckState(Qt::Unchecked);
+        ui->pitchPidCheckBox->setCheckState(Qt::Unchecked);
+        ui->rollPidCheckBox->setCheckState(Qt::Unchecked);
+
+        ui->depthPidCheckBox->setEnabled(false);
+        ui->yawPidCheckBox->setEnabled(false);
+        ui->pitchPidCheckBox->setEnabled(false);
+        ui->rollPidCheckBox->setEnabled(false);
+
+        closeControlTimer.stop();
+        AS::as_api_test_stop();
+
+        break;
+
+    default:
+        ;
     }
 }

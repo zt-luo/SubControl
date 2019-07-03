@@ -10,5 +10,8 @@
         <file>icon/setting.svg</file>
         <file>icon/video.svg</file>
         <file>icon/analysis.svg</file>
+        <file>icon/control.svg</file>
+        <file>icon/menu.svg</file>
+        <file>icon/main_icon.svg</file>
     </qresource>
 </RCC>
