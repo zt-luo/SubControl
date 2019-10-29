@@ -4,11 +4,11 @@
 
 ## Screenshot
 
-![dive_page](https://raw.githubusercontent.com/zt-luo/SubControl/master/doc/img/dive_page.png)
+![dive_page](https://raw.githubusercontent.com/zt-luo/SubControl/master/doc/img/video.png)
 
+![analyze_page](https://raw.githubusercontent.com/zt-luo/SubControl/master/doc/img/control.png)
 
-
-![analyze_page](https://raw.githubusercontent.com/zt-luo/SubControl/master/doc/img/analyze_page.png)
+![analyze_page](https://raw.githubusercontent.com/zt-luo/SubControl/master/doc/img/setting.png)
 
 ## build
 

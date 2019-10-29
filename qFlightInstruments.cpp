@@ -56,13 +56,15 @@ void QADI::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
 
-    QBrush bgSky(QColor(48,172,220));
-    QBrush bgGround(QColor(247,168,21));
+//    QBrush bgSky(QColor(48,172,220));
+//    QBrush bgGround(QColor(247,168,21));
+    QBrush bgSky(Qt::blue);
+    QBrush bgGround(Qt::green);
 
     QPen   whitePen(Qt::white);
     QPen   blackPen(Qt::black);
     QPen   pitchPen(Qt::white);
-    QPen   pitchZero(Qt::green);
+    QPen   pitchZero(Qt::white);
 
     whitePen.setWidth(2);
     blackPen.setWidth(2);
@@ -88,7 +90,7 @@ void QADI::paintEvent(QPaintEvent *)
         if( y > y_max ) y = y_max;
 
         int x = static_cast<int>(sqrt(m_size*m_size/4 - y*y));
-        qreal gr = atan((double)(y)/x);
+        qreal gr = atan(static_cast<double>(y)/x);
         gr = gr * 180./3.1415926;
 
         painter.setPen(blackPen);
@@ -196,8 +198,8 @@ void QADI::paintEvent(QPaintEvent *)
         int     fontSize = 8;
         QString s;
 
-        blackPen.setWidth(1);
-        painter.setPen(blackPen);
+        whitePen.setWidth(2);
+        painter.setPen(whitePen);
         painter.setFont(QFont("Arial", fontSize));
 
         for(int i=0; i<nRollLines; i++) {
@@ -321,7 +323,8 @@ void QCompass::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
 
-    QBrush bgGround(QColor(48,172,220));
+//    QBrush bgGround(QColor(48,172,220));
+    QBrush bgGround(Qt::white);
 
     QPen   whitePen(Qt::white);
     QPen   blackPen(Qt::black);
@@ -478,13 +481,41 @@ void QCompass::paintEvent(QPaintEvent *)
 
     // draw altitude
     {
+///////////////////////////////////////////////////////////////////////////////////////
+//        int     altFontSize = 13;
+//        int     fx, fy, w, h;
+//        QString s;
+//        char    buf[200];
+
+//        w  = 130;
+//        h  = 2*(altFontSize + 8);
+//        fx = -w/2;
+//        fy = -h/2;
+
+//        blackPen.setWidth(2);
+//        painter.setPen(blackPen);
+//        painter.setBrush(QBrush(Qt::white));
+//        painter.setFont(QFont("Arial", altFontSize));
+
+//        painter.drawRoundedRect(fx, fy, w, h, 6, 6);
+
+//        painter.setPen(bluePen);
+//        sprintf(buf, "ALT: %6.1f m", m_alt);
+//        s = buf;
+//        painter.drawText(QRectF(fx, fy+2, w, h/2), Qt::AlignCenter, s);
+
+//        sprintf(buf, "H: %6.1f m", m_h);
+//        s = buf;
+//        painter.drawText(QRectF(fx, fy+h/2, w, h/2), Qt::AlignCenter, s);
+///////////////////////////////////////////////////////////////////////////////////////
+
         int     altFontSize = 13;
         int     fx, fy, w, h;
         QString s;
         char    buf[200];
 
-        w  = 130;
-        h  = 2*(altFontSize + 8);
+        w  = 100;
+        h  = altFontSize + 10;
         fx = -w/2;
         fy = -h/2;
 
@@ -493,16 +524,11 @@ void QCompass::paintEvent(QPaintEvent *)
         painter.setBrush(QBrush(Qt::white));
         painter.setFont(QFont("Arial", altFontSize));
 
-        painter.drawRoundedRect(fx, fy, w, h, 6, 6);
+        painter.drawRoundedRect(fx, fy, w, h, 4, 4);
 
-        painter.setPen(bluePen);
-        sprintf(buf, "ALT: %6.1f m", m_alt);
+        sprintf(buf, "D: %6.2f m", m_alt);
         s = buf;
-        painter.drawText(QRectF(fx, fy+2, w, h/2), Qt::AlignCenter, s);
-
-        sprintf(buf, "H: %6.1f m", m_h);
-        s = buf;
-        painter.drawText(QRectF(fx, fy+h/2, w, h/2), Qt::AlignCenter, s);
+        painter.drawText(QRectF(fx, fy+h/4, w, h/2), Qt::AlignCenter, s);
     }
 }
 

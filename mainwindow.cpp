@@ -16,11 +16,23 @@ MainWindow::MainWindow(QWidget *parent) :
     m_depthChart(new DepthChart),
     m_depthScene(new QGraphicsScene),
     m_joystick(nullptr),
-    currentVehicle(0)
+    _vlcPlayer(nullptr),
+    currentVehicle(0),
+    videoOk(false)
 {
     ui->setupUi(this);
-    setWindowIcon(QIcon(":icon/icon/main_icon.svg"));
+    setWindowIcon(QIcon(":/assets/icon/main_icon.svg"));
     setupToolBars();
+
+    QCoreApplication::setOrganizationName("ARMs of HUST");
+    QCoreApplication::setOrganizationDomain("https://github.com/hust-arms");
+    QCoreApplication::setApplicationName("SubControl");
+
+    manual_control.x = 0;
+    manual_control.y = 0;
+    manual_control.z = 500;
+    manual_control.r = 0;
+    manual_control.buttons = 0;
 
     // yawRoll chart
     // m_yawChart->setTitle("Yaw/degree");
@@ -39,9 +51,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->depthView->setScene(m_depthScene);
     m_depthScene->addItem(m_depthChart->legendText[0]);
 
+    readSettings();
+
     vehicle_data_g = new AS::Vehicle_Data_t;
 
-    std::string ip("192.168.2.");
+//    std::string ip("192.168.2.");
+    std::string ip("serial port");
     AS::as_api_init(ip.c_str(), F_THREAD_NONE);
 
     setupTimer();
@@ -52,24 +67,31 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    writeSettings();
     delete ui;
+}
+
+void MainWindow::resizeWindowsManual()
+{
+    int m_width = 0;
+    m_width = ui->stackedWidgetVideo->width();
+
+    setChartsSize();
+
+    ui->vedio->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
+    ui->picture->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
+
+    ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
+    ui->labelCompass->setGeometry(m_width - 160, 0, 160, 160);
+    ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
+    ui->labelADI->setGeometry(m_width - 320, 0, 160, 160);
+
+    ui->vedioPanel->setGeometry(m_width - 320, 160, 320, 20);
 }
 
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
-    static bool firstResize = true;
-    if (!firstResize)
-    {
-        setChartsSize();
-        ui->vedio->setGeometry(0, 0 , ui->stackedWidgetVideo->width(), ui->stackedWidgetVideo->height());
-
-        ui->qCompass->setGeometry(ui->stackedWidgetVideo->width() - 160, 0, 160, 160);
-        ui->qADI->setGeometry(ui->stackedWidgetVideo->width() - 320, 0, 160, 160);
-    }
-    else
-    {
-        firstResize = false;
-    }
+    resizeWindowsManual();
 
     QMainWindow::resizeEvent(event);
 }
@@ -168,143 +190,6 @@ void MainWindow::stringToHtml(QString &str, QColor _color)
     str = QString("<span style=\" color:#%1;\">%2</span>").arg(strC).arg(str);
 }
 
-void MainWindow::setupTimer()
-{
-    QObject::connect(&closeControlTimer, &QTimer::timeout, this, &MainWindow::closeControl);
-    closeControlTimer.setInterval(25);
-//    depthPidTimer.start();
-
-    QObject::connect(&statusTexTimer, &QTimer::timeout, this, &MainWindow::fetchStatusTex);
-    statusTexTimer.setInterval(100);
-//    statusTexTimer.start();
-
-    QObject::connect(&chartTimer, &QTimer::timeout, this, &MainWindow::updateChart);
-    chartTimer.setInterval(10);
-//    chartTimer.start();
-
-    QObject::connect(&adiCompassTimer, &QTimer::timeout, this, &MainWindow::updateAdiCompass);
-    adiCompassTimer.setInterval(20);
-//    adiCompassTimer.start();
-
-    QObject::connect(&namedValueTimer, &QTimer::timeout, this, &MainWindow::updateNamedValue);
-    namedValueTimer.setInterval(20);
-
-    QObject::connect(&vehicleCheckTimer, &QTimer::timeout, this, &MainWindow::vehicleCheck);
-    vehicleCheckTimer.setInterval(500);
-    vehicleCheckTimer.start();
-
-    QObject::connect(&manualControlTimer, &QTimer::timeout, this, &MainWindow::manualControl);
-    manualControlTimer.setInterval(50);
-    manualControlTimer.start();
-}
-
-void MainWindow::setupVideo()
-{
-    _vlcInstance = new VlcInstance(VlcCommon::args() << "--network-caching=0", this);
-    _vlcPlayer = new VlcMediaPlayer(_vlcInstance);
-    _vlcPlayer->setVideoWidget(ui->vedio);
-    ui->vedio->setMediaPlayer(_vlcPlayer);
-
-//    _vlcMedia = new VlcMedia("file:///home/ztluo/video.mp4", _vlcInstance);
-    _vlcMedia = new VlcMedia("http://192.168.2.2:2770/vlc.sdp", _vlcInstance);
-    _vlcPlayer->open(_vlcMedia);
-}
-
-void MainWindow::setupJoystick()
-{
-    joystickManager = QGamepadManager::instance();
-
-    QObject::connect(joystickManager,
-                     &QGamepadManager::connectedGamepadsChanged,
-                     this,
-                     &MainWindow::on_connectedGamepadsChanged);
-
-    QList<int> joysticks = joystickManager->connectedGamepads();
-
-    if (!joysticks.isEmpty())
-    {
-        QIcon icon = QIcon(":/icon/icon/joystick_black.svg");
-        ui->actionJoystick->setIcon(icon);
-
-        m_joystick = new QGamepad(*joysticks.begin(), this);
-
-        qDebug() << m_joystick->name() << "deviceId:" << m_joystick->deviceId();
-
-        connectJoystickSlots(true, m_joystick);
-    }
-}
-
-void MainWindow::connectJoystickSlots(bool b, QGamepad* m_joystick)
-{
-    if (b)
-    {
-        QObject::connect(m_joystick, &QGamepad::axisLeftXChanged, this,
-                         &MainWindow::on_joystick_axisLeftXChanged);
-
-        QObject::connect(m_joystick, &QGamepad::axisLeftYChanged, this,
-                         &MainWindow::on_joystick_axisLeftYChanged);
-
-        QObject::connect(m_joystick, &QGamepad::axisRightXChanged, this,
-                         &MainWindow::on_joystick_axisRightXChanged);
-
-        QObject::connect(m_joystick, &QGamepad::axisRightYChanged, this,
-                         &MainWindow::on_joystick_axisRightYChanged);
-
-        connect(m_joystick, &QGamepad::buttonAChanged, this, [](bool pressed){
-            qDebug() << "Button A" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonBChanged, this, [](bool pressed){
-            qDebug() << "Button B" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonXChanged, this, [](bool pressed){
-            qDebug() << "Button X" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonYChanged, this, [](bool pressed){
-            qDebug() << "Button Y" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonL1Changed, this, [](bool pressed){
-            qDebug() << "Button L1" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonR1Changed, this, [](bool pressed){
-            qDebug() << "Button R1" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonL2Changed, this, [](double value){
-            qDebug() << "Button L2: " << value;
-        });
-        connect(m_joystick, &QGamepad::buttonR2Changed, this, [](double value){
-            qDebug() << "Button R2: " << value;
-        });
-        connect(m_joystick, &QGamepad::buttonSelectChanged, this, [](bool pressed){
-            qDebug() << "Button Select" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonStartChanged, this, [](bool pressed){
-            qDebug() << "Button Start" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonGuideChanged, this, [](bool pressed){
-            qDebug() << "Button Guide" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonUpChanged, this, [](bool pressed){
-            qDebug() << "Button Up" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonDownChanged, this, [](bool pressed){
-            qDebug() << "Button Down" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonLeftChanged, this, [](bool pressed){
-            qDebug() << "Button Left" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonRightChanged, this, [](bool pressed){
-            qDebug() << "Button Right" << pressed;
-        });
-        connect(m_joystick, &QGamepad::buttonCenterChanged, this, [](bool pressed){
-            qDebug() << "Button Center" << pressed;
-        });
-    }
-    else
-    {
-        m_joystick->disconnect();
-    }
-}
-
 void MainWindow::setupConfigView()
 {
     QFont *m_font = new QFont();
@@ -312,18 +197,25 @@ void MainWindow::setupConfigView()
     m_font->setPointSize(12);
 
     QListWidgetItem *buttonGeneral = new QListWidgetItem(ui->listWidget);
-    QIcon iconGeneral = QIcon(":/icon/icon/setting.svg");
+    QIcon iconGeneral = QIcon(":/assets/icon/setting.svg");
     buttonGeneral->setIcon(iconGeneral);
     buttonGeneral->setText(" General");
     buttonGeneral->setFont(*m_font);
     ui->listWidget->addItem(buttonGeneral);
 
     QListWidgetItem *buttonJoystick = new QListWidgetItem(ui->listWidget);
-    QIcon iconJoystick = QIcon(":/icon/icon/joystick_black.svg");
+    QIcon iconJoystick = QIcon(":/assets/icon/joystick_black.svg");
     buttonJoystick->setIcon(iconJoystick);
     buttonJoystick->setText(" Joystick");
     buttonJoystick->setFont(*m_font);
     ui->listWidget->addItem(buttonJoystick);
+
+    QListWidgetItem *buttonThruster = new QListWidgetItem(ui->listWidget);
+    QIcon iconThruster = QIcon(":/assets/icon/thruster.png");
+    buttonThruster->setIcon(iconThruster);
+    buttonThruster->setText(" Thruster");
+    buttonThruster->setFont(*m_font);
+    ui->listWidget->addItem(buttonThruster);
 
     ui->listWidget->setCurrentRow(0);
 
@@ -332,734 +224,39 @@ void MainWindow::setupConfigView()
     ui->stackedWidgetMain->setCurrentIndex(0);
 }
 
-void MainWindow::closeControl()
+void MainWindow::writeSettings()
 {
-//    AS::as_api_set_mode(1, AS::LAB_REMOTE);
-    // check current mode
-    if (modeComboBox->currentText() != "LAB_REMOTE")
-    {
-        return;
-    }
-
-    // controlor output
-    int depth_pwm_out = 0,
-            yaw_pwm_out = 0, pitch_pwm_out = 0, roll_pwm_out = 0,
-            x_pwm_out  = 0, y_pwm_out = 0;
-
-    static double depth_now;   // depth in this iteration, m
-    static double yaw_now;     // yaw in this iteration, degree
-    static double pitch_now;   // pitch in this iteration, degree
-    static double roll_now;    // roll in this iteration, degree
-
-    static double depth_old;   // depth in the previous iteration
-    static double yaw_old;     // yaw in the previous iteration
-    static double pitch_old;   // pitch in the previous iteration
-    static double roll_old;    // roll in the previous iteration
-
-    depth_old = depth_now;
-    yaw_old = yaw_now;
-    pitch_old = pitch_now;
-    roll_old = roll_now;
-
-    if(0 != AS::as_api_check_vehicle(currentVehicle))
-    {
-        AS::Vehicle_Data_t *vehicle_data;
-        vehicle_data = AS::as_api_get_vehicle_data(currentVehicle);
-        if (nullptr != vehicle_data)
-        {
-            const float degreePerRad = 180.0f / 3.1415926f;
-            depth_now = vehicle_data->alt / 1000.0;          // m
-            yaw_now = vehicle_data->yaw * degreePerRad;      // degree
-            pitch_now = vehicle_data->pitch * degreePerRad;  // degree
-            roll_now = vehicle_data->roll * degreePerRad;    // degree
-        }
-    }
-
-    // depth controlor start
-    if (!ui->depthPidCheckBox->checkState())
-    {
-        depth_pwm_out = 0;
-    }
-    else
-    {
-        double depth_expected, kP, kI, kD;
-
-        depth_expected = ui->doubleSpinBoxDe->value();
-
-        kP = ui->doubleSpinBoxKpDepth->value();
-        kI = ui->doubleSpinBoxKiDepth->value();
-        kD = ui->doubleSpinBoxKdDepth->value();
-
-        int pwm_limit = 150;
-
-        uint32_t dt = 25; // ms
-
-        // I_term_min and max prevent integral windup by saturating the I_term
-        double I_term_max = -600;
-        double I_term_min = -700;
-        // [m/s] this is added to prevent setpoint kick in the derivative term
-        double depth_vel_lim = 1;
-
-        double P_term = 0;
-        double I_term = 0;
-        double D_term = 0;
-
-        double depth_err = 0; // declare the depth error
-        double depth_vel = 0; // declare the derivative term for z
-
-        depth_err = depth_expected - depth_now;
-
-        // P_term
-        P_term = kP * depth_err;
-
-        // I_term
-        if (abs(kI) < 0.0000001)
-        {
-            I_term = 0;
-        }
-        else
-        {
-            if (depth_expected < -0.2) // dont do this while disarm
-            {
-                I_term = I_term + kI * depth_err * (dt / 1000);
-                // clamp the value of I_term
-                if (I_term < I_term_min)
-                {
-                    I_term = I_term_min;
-                }
-                if (I_term > I_term_max)
-                {
-                    I_term = I_term_max;
-                }
-            }
-        }
-
-        // D_term
-        depth_vel = (depth_now - depth_old) / (dt / 1000);  //PI-D
-//        depth_vel = depth_err / (dt / 1000);  //PID
-        // clamp the value of z_vel
-        if (depth_vel < -depth_vel_lim)
-        {
-            depth_vel = -depth_vel_lim;
-        }
-        if (depth_vel > depth_vel_lim)
-        {
-            depth_vel = depth_vel_lim;
-        }
-        D_term = kD * depth_vel;
-
-        depth_pwm_out = static_cast<int>(P_term + I_term + D_term);
-
-        // clamp the value of depth_pwm_out
-        if (depth_pwm_out < -pwm_limit)
-        {
-            depth_pwm_out = -pwm_limit;
-        }
-        if (depth_pwm_out > pwm_limit)
-        {
-            depth_pwm_out = pwm_limit;
-        }
-
-    } // depth controlor end
-
-    // yaw controlor start
-    if (!ui->yawPidCheckBox->checkState())
-    {
-        yaw_pwm_out = 0;
-    }
-    else
-    {
-        double yaw_expected, kP, kI, kD;
-
-        yaw_expected = ui->doubleSpinBoxYe->value();
-
-        kP = ui->doubleSpinBoxKpYaw->value();
-        kI = ui->doubleSpinBoxKiYaw->value();
-        kD = ui->doubleSpinBoxKdYaw->value();
-
-        int pwm_limit = 150;
-
-        uint32_t dt = 25; // ms
-
-        // I_term_min and max prevent integral windup by saturating the I_term
-        double I_term_max = -600;
-        double I_term_min = -700;
-        // [degree/s] this is added to prevent setpoint kick in the derivative term
-        double yaw_vel_lim = 1;
-
-        double P_term = 0;
-        double I_term = 0;
-        double D_term = 0;
-
-        double yaw_err = 0; // declare the depth error
-        double yaw_vel = 0; // declare the derivative term for z
-
-        yaw_err = yaw_expected - yaw_now;
-
-        // P_term
-        P_term = kP * yaw_err;
-
-        // I_term
-        if (abs(kI) < 0.0000001)
-        {
-            I_term = 0;
-        }
-        else
-        {
-            if (yaw_expected < -0.2) // dont do this while disarm
-            {
-                I_term = I_term + kI * yaw_err * (dt / 1000);
-                // clamp the value of I_term
-                if (I_term < I_term_min)
-                {
-                    I_term = I_term_min;
-                }
-                if (I_term > I_term_max)
-                {
-                    I_term = I_term_max;
-                }
-            }
-        }
-
-        // D_term
-        yaw_vel = (yaw_now - yaw_old) / (dt / 1000);  //PI-D
-//        yaw_vel = yaw_err / (dt / 1000);  //PID
-        // clamp the value of z_vel
-        if (yaw_vel < -yaw_vel_lim)
-        {
-            yaw_vel = -yaw_vel_lim;
-        }
-        if (yaw_vel > yaw_vel_lim)
-        {
-            yaw_vel = yaw_vel_lim;
-        }
-        D_term = kD * yaw_vel;
-
-        yaw_pwm_out = static_cast<int>(P_term + I_term + D_term);
-
-        // clamp the value of yaw_pwm_out
-        if (yaw_pwm_out < -pwm_limit)
-        {
-            yaw_pwm_out = -pwm_limit;
-        }
-        if (yaw_pwm_out > pwm_limit)
-        {
-            yaw_pwm_out = pwm_limit;
-        }
-    } // yaw controlor end
-
-    // pitch controlor start
-    if (!ui->pitchPidCheckBox->checkState())
-    {
-        pitch_pwm_out = 0;
-    }
-    else
-    {
-        double pitch_expected, kP, kI, kD;
-
-        pitch_expected = ui->doubleSpinBoxPe->value();
-
-        kP = ui->doubleSpinBoxKpPitch->value();
-        kI = ui->doubleSpinBoxKiPitch->value();
-        kD = ui->doubleSpinBoxKdPitch->value();
-
-        int pwm_limit = 150;
-
-        uint32_t dt = 25; // ms
-
-        // I_term_min and max prevent integral windup by saturating the I_term
-        double I_term_max = -600;
-        double I_term_min = -700;
-        // [degree/s] this is added to prevent setpoint kick in the derivative term
-        double pitch_vel_lim = 1;
-
-        double P_term = 0;
-        double I_term = 0;
-        double D_term = 0;
-
-        double pitch_err = 0; // declare the depth error
-        double pitch_vel = 0; // declare the derivative term for z
-
-        pitch_err = pitch_expected - pitch_now;
-
-        // P_term
-        P_term = kP * pitch_err;
-
-        // I_term
-        if (abs(kI) < 0.0000001)
-        {
-            I_term = 0;
-        }
-        else
-        {
-            if (pitch_expected < -0.2) // dont do this while disarm
-            {
-                I_term = I_term + kI * pitch_err * (dt / 1000);
-                // clamp the value of I_term
-                if (I_term < I_term_min)
-                {
-                    I_term = I_term_min;
-                }
-                if (I_term > I_term_max)
-                {
-                    I_term = I_term_max;
-                }
-            }
-        }
-
-        // D_term
-        pitch_vel = (pitch_now - pitch_old) / (dt / 1000);  //PI-D
-//        pitch_vel = pitch_err / (dt / 1000);  //PID
-        // clamp the value of z_vel
-        if (pitch_vel < -pitch_vel_lim)
-        {
-            pitch_vel = -pitch_vel_lim;
-        }
-        if (pitch_vel > pitch_vel_lim)
-        {
-            pitch_vel = pitch_vel_lim;
-        }
-        D_term = kD * pitch_vel;
-
-        pitch_pwm_out = static_cast<int>(P_term + I_term + D_term);
-
-        // clamp the value of yaw_pwm_out
-        if (pitch_pwm_out < -pwm_limit)
-        {
-            pitch_pwm_out = -pwm_limit;
-        }
-        if (pitch_pwm_out > pwm_limit)
-        {
-            pitch_pwm_out = pwm_limit;
-        }
-    } // pitch controlor end
-
-    // roll controlor start
-    if (!ui->rollPidCheckBox->checkState())
-    {
-        roll_pwm_out = 0;
-    }
-    else
-    {
-        double roll_expected, kP, kI, kD;
-
-        roll_expected = ui->doubleSpinBoxRe->value();
-
-        kP = ui->doubleSpinBoxKpRoll->value();
-        kI = ui->doubleSpinBoxKiRoll->value();
-        kD = ui->doubleSpinBoxKdRoll->value();
-
-        int pwm_limit = 150;
-
-        uint32_t dt = 25; // ms
-
-        // I_term_min and max prevent integral windup by saturating the I_term
-        double I_term_max = -600;
-        double I_term_min = -700;
-        // [degree/s] this is added to prevent setpoint kick in the derivative term
-        double roll_vel_lim = 1;
-
-        double P_term = 0;
-        double I_term = 0;
-        double D_term = 0;
-
-        double roll_err = 0; // declare the depth error
-        double roll_vel = 0; // declare the derivative term for z
-
-        roll_err = roll_expected - roll_now;
-
-        // P_term
-        P_term = kP * roll_err;
-
-        // I_term
-        if (abs(kI) < 0.0000001)
-        {
-            I_term = 0;
-        }
-        else
-        {
-            if (roll_expected < -0.2) // dont do this while disarm
-            {
-                I_term = I_term + kI * roll_err * (dt / 1000);
-                // clamp the value of I_term
-                if (I_term < I_term_min)
-                {
-                    I_term = I_term_min;
-                }
-                if (I_term > I_term_max)
-                {
-                    I_term = I_term_max;
-                }
-            }
-        }
-
-        // D_term
-        roll_vel = (roll_now - roll_old) / (dt / 1000);  //PI-D
-//        roll_vel = roll_err / (dt / 1000);  //PID
-        // clamp the value of z_vel
-        if (roll_vel < -roll_vel_lim)
-        {
-            roll_vel = -roll_vel_lim;
-        }
-        if (roll_vel > roll_vel_lim)
-        {
-            roll_vel = roll_vel_lim;
-        }
-        D_term = kD * roll_vel;
-
-        roll_pwm_out = static_cast<int>(P_term + I_term + D_term);
-
-        // clamp the value of yaw_pwm_out
-        if (roll_pwm_out < -pwm_limit)
-        {
-            roll_pwm_out = -pwm_limit;
-        }
-        if (roll_pwm_out > pwm_limit)
-        {
-            roll_pwm_out = pwm_limit;
-        }
-    } // roll controlor end
-
-    // x movement start
-    {
-        int pwm_limit = 150;
-
-        int x_input = 0;
-
-        x_pwm_out = x_input * 150;
-
-        // clamp the value of x_pwm_out
-        if (x_pwm_out < -pwm_limit)
-        {
-            x_pwm_out = -pwm_limit;
-        }
-        if (x_pwm_out > pwm_limit)
-        {
-            x_pwm_out = pwm_limit;
-        }
-    } // x movement end
-
-    // y movement start
-    {
-        int pwm_limit = 150;
-
-        int y_input = 0;
-
-        x_pwm_out = y_input * 150;
-
-        // clamp the value of y_pwm_out
-        if (y_pwm_out < -pwm_limit)
-        {
-            y_pwm_out = -pwm_limit;
-        }
-        if (y_pwm_out > pwm_limit)
-        {
-            y_pwm_out = pwm_limit;
-        }
-    } // y movement end
-
-    int motor_pwm[8] = {1500};
-
-    motor_pwm[0] = 1500 - yaw_pwm_out + x_pwm_out - y_pwm_out;
-    motor_pwm[1] = 1500 + yaw_pwm_out + x_pwm_out + y_pwm_out;
-    motor_pwm[2] = 1500 - yaw_pwm_out + x_pwm_out + y_pwm_out;
-    motor_pwm[3] = 1500 + yaw_pwm_out + x_pwm_out - y_pwm_out;
-
-    motor_pwm[4] = 1500 + depth_pwm_out + pitch_pwm_out + roll_pwm_out;
-    motor_pwm[5] = 1500 - depth_pwm_out - pitch_pwm_out + roll_pwm_out;
-    motor_pwm[6] = 1500 - depth_pwm_out + pitch_pwm_out - roll_pwm_out;
-    motor_pwm[7] = 1500 + depth_pwm_out - pitch_pwm_out - roll_pwm_out;
-
-    AS::as_api_send_rc_channels_override(
-                currentVehicle, 1,
-                static_cast<uint16_t>(motor_pwm[0]),
-                static_cast<uint16_t>(motor_pwm[1]),
-                static_cast<uint16_t>(motor_pwm[2]),
-                static_cast<uint16_t>(motor_pwm[3]),
-                static_cast<uint16_t>(motor_pwm[4]),
-                static_cast<uint16_t>(motor_pwm[5]),
-                static_cast<uint16_t>(motor_pwm[6]),
-                static_cast<uint16_t>(motor_pwm[7]));
-
-
-//    QString out_str;
-//    ui->textLogInfo->append(out_str.sprintf("%d", depth_pwm_out));
+    QSettings settings;
+
+    settings.beginGroup("MainWindow");
+    settings.setValue("size", size());
+    settings.setValue("pos", pos());
+    settings.endGroup();
+
+    settings.beginGroup("General/Video");
+    settings.setValue("enable", ui->checkBoxVideoLink->checkState());
+    settings.setValue("link", ui->lineEditVideoLink->text());
+    settings.setValue("ADI", ui->checkBoxADI->checkState());
+    settings.setValue("compass", ui->checkBoxCompass->checkState());
+    settings.setValue("panle", ui->checkBoxVedioPanle->checkState());
+    settings.endGroup();
 }
 
-void MainWindow::fetchStatusTex()
+void MainWindow::readSettings()
 {
-    if (0 == currentVehicle)
-    {
-        return;
-    }
+    QSettings settings;
+    settings.beginGroup("MainWindow");
+    resize(settings.value("size", QSize(1200, 700)).toSize());
+    move(settings.value("pos", QPoint(0, 0)).toPoint());
+    settings.endGroup();
 
-    AS::mavlink_statustext_t *statustxt = nullptr;
-    QString severity_tex[8] = {"EMERGENCY", "ALERT",
-                               "CRITICAL", "ERROR",
-                               "WARNING", "NOTICE",
-                               "INFO", "DEBUG"};
-    statustxt = AS::as_api_statustex_queue_pop(currentVehicle);
-
-    QString out_str;
-    if (nullptr != statustxt)
-    {
-        QDateTime current_date_time =QDateTime::currentDateTime();
-        QString current_time =current_date_time.toString("[hh:mm:ss.zzz] ");
-        out_str.append(current_time);
-        out_str.append(severity_tex[statustxt->severity]);
-        out_str.append(QString(" - %1").arg(statustxt->text));
-
-        if (statustxt->severity < 4)
-        {
-            stringToHtml(out_str, Qt::red);
-        }
-        else if (statustxt->severity < 6)
-        {
-            stringToHtml(out_str, Qt::magenta);
-        }
-
-        ui->textVehicleInfo->append(out_str);
-    }
-}
-
-void MainWindow::updateChart()
-{
-    float yaw = 0, roll = 0, pitch = 0, depth = 0;
-    static int64_t last_time_us, last_d_time_us;
-    int64_t time_us = 0, d_time_us = 0;
-    if(0 == AS::as_api_check_vehicle(currentVehicle))
-    {
-        yaw = 0;
-        roll = 0;
-        pitch = 0;
-        depth = 0;
-    }
-    else
-    {
-        AS::Vehicle_Data_t *vehicle_data;
-        vehicle_data = new AS::Vehicle_Data_t;
-
-        vehicle_data = AS::as_api_get_vehicle_data(currentVehicle);
-
-        if (nullptr != vehicle_data)
-        {
-            const float degreePerRad = 180.0f / 3.1415926f;
-
-            yaw = vehicle_data->yaw * degreePerRad;
-            roll = vehicle_data->roll * degreePerRad;
-            pitch = vehicle_data->pitch * degreePerRad;
-            depth = vehicle_data->alt / 1000.0f;
-            time_us = vehicle_data->monotonic_time;
-        }
-    }
-
-    if (last_time_us == 0)
-    {
-        d_time_us = 0;
-    }
-    else
-    {
-        d_time_us = time_us - last_time_us;
-    }
-
-    if (d_time_us < 0)
-    {
-        d_time_us = last_d_time_us;
-    }
-    else
-    {
-        last_d_time_us = d_time_us;
-    }
-
-    last_time_us = time_us;
-
-    qreal m_y1[2];
-    m_y1[0] = yaw;
-    m_y1[1] = roll;
-    m_yawRollChart->seriesAppendData(m_y1, d_time_us / 1000000.0);
-
-    qreal m_y2[1];
-    m_y2[0] = pitch;
-    m_pitchChart->seriesAppendData(m_y2, d_time_us / 1000000.0);
-
-    qreal m_y3[1];
-    m_y3[0] = depth;
-    m_depthChart->seriesAppendData(m_y3, d_time_us / 1000000.0);
-}
-
-void MainWindow::updateAdiCompass()
-{
-    if (0 == currentVehicle)
-    {
-        return;
-    }
-
-    float yaw = 0, roll = 0, pitch = 0, depth =0;
-    if(0 != AS::as_api_check_vehicle(currentVehicle))
-    {
-        AS::Vehicle_Data_t *vehicle_data;
-        vehicle_data = new AS::Vehicle_Data_t;
-
-        vehicle_data = AS::as_api_get_vehicle_data(currentVehicle);
-
-        if (nullptr != vehicle_data)
-        {
-            #define D_PER_RAD (180.0f / 3.1415926f)
-            yaw = vehicle_data->yaw * D_PER_RAD;
-            roll = vehicle_data->roll * D_PER_RAD;
-            pitch = vehicle_data->pitch * D_PER_RAD;
-            depth = vehicle_data->alt / 1000.0f;
-        }
-    }
-
-    ui->qADI->setData(roll, pitch);
-    ui->qCompass->setYaw(yaw);
-    ui->qCompass->setAlt(depth);
-}
-
-void MainWindow::vehicleCheck()
-{
-
-    // wait for vehicle to connect, and start timer
-    static bool fixedWidth = false;
-    bool existActiveVehicle = false;
-
-    QHash<QString, int>::iterator iter;
-
-    for (int i = 1; i < 255; i++)
-    {
-        QString vehicleID;
-        vehicleID.sprintf("%d", i);
-
-        iter = activeVehicleHash.find(vehicleID);
-
-        if (AS::as_api_check_vehicle(static_cast<uint8_t>(i)))
-        {
-            existActiveVehicle = true;
-
-            // vehicleComboBox index
-            int index = activeVehicleHash.count() + 1;
-
-            if(iter == activeVehicleHash.end())
-            {
-                // new
-                activeVehicleHash.insert(vehicleID, index);
-                vehicleComboBox->insertItem(i, vehicleID);
-                vehicleComboBox->setCurrentIndex(index);
-            }
-
-            if (i > 9 && !fixedWidth)
-            {
-                vehicleComboBox->setFixedWidth(45);
-            }
-
-            if (i > 99 && !fixedWidth)
-            {
-                vehicleComboBox->setFixedWidth(50);
-                fixedWidth = true;
-            }
-        }
-        else
-        {
-            if(iter != activeVehicleHash.end())
-            {
-                activeVehicleHash.remove(vehicleID);
-                vehicleComboBox->removeItem(iter.value());
-            }
-        }
-    }
-
-    if (existActiveVehicle)
-    {
-        statusTexTimer.start();
-        adiCompassTimer.start();
-        chartTimer.start();
-        namedValueTimer.start();
-
-        armCheckBox->setEnabled(true);
-        modeComboBox->setEnabled(true);
-    }
-    else
-    {
-        currentVehicle = 0;
-
-        statusTexTimer.stop();
-        adiCompassTimer.stop();
-        chartTimer.stop();
-        namedValueTimer.stop();
-
-        vehicleComboBox->setCurrentIndex(0);
-
-        armCheckBox->setDisabled(true);
-        modeComboBox->setDisabled(true);
-    }
-}
-
-void MainWindow::updateNamedValue()
-{
-    if (0 == currentVehicle)
-    {
-        return;
-    }
-
-    if(0 != AS::as_api_check_vehicle(currentVehicle))
-    {
-        AS::mavlink_named_value_float_t *value_float;
-        value_float = new AS::mavlink_named_value_float_t;
-
-        value_float = AS::as_api_named_val_float_queue_pop(currentVehicle);
-
-        if (nullptr != value_float)
-        {
-            QHash<QString, float>::iterator iter;
-            iter = namedFloatHash.find(value_float->name);
-            // new key
-            if(iter == namedFloatHash.end())
-            {
-                namedFloatHash.insert(value_float->name, value_float->value);
-                ui->comboBoxL1->addItem(value_float->name);
-                ui->comboBoxL2->addItem(value_float->name);
-                ui->comboBoxL3->addItem(value_float->name);
-            }
-            else
-            {
-                iter.value() = value_float->value;
-            }
-        }
-    }
-
-    QHash<QString, float>::iterator iter;
-
-    iter = namedFloatHash.find(ui->comboBoxL1->currentText());
-    if(iter != namedFloatHash.end())
-    {
-        ui->line1->setText(QString("%1").arg(iter.value()));
-    }
-
-    iter = namedFloatHash.find(ui->comboBoxL2->currentText());
-    if(iter != namedFloatHash.end())
-    {
-        ui->line2->setText(QString("%1").arg(iter.value()));
-    }
-
-    iter = namedFloatHash.find(ui->comboBoxL3->currentText());
-    if(iter != namedFloatHash.end())
-    {
-        ui->line3->setText(QString("%1").arg(iter.value()));
-    }
-}
-
-void MainWindow::manualControl()
-{
-    if (currentVehicle != 0 &&
-            armCheckBox->checkState() == Qt::Checked &&
-            modeComboBox->currentText() == "MANUAL" &&
-            AS::as_api_check_vehicle(currentVehicle))
-    {
-        AS::as_api_manual_control(manual_control.x, manual_control.y,
-                                  manual_control.z, manual_control.r,
-                                  manual_control.buttons);
-    }
+    settings.beginGroup("General/Video");
+    ui->checkBoxVideoLink->setCheckState(static_cast<Qt::CheckState>(settings.value("enable", 2).toInt()));
+    ui->lineEditVideoLink->setText(settings.value("link", "http://192.168.2.2:2770/vlc.sdp").toString());
+    ui->checkBoxADI->setCheckState(static_cast<Qt::CheckState>(settings.value("ADI", 2).toInt()));
+    ui->checkBoxCompass->setCheckState(static_cast<Qt::CheckState>(settings.value("compass", 2).toInt()));
+    ui->checkBoxVedioPanle->setCheckState(static_cast<Qt::CheckState>(settings.value("panle", 2).toInt()));
+    settings.endGroup();
 }
 
 void MainWindow::on_actionVideo_triggered()
@@ -1075,6 +272,8 @@ void MainWindow::on_actionVideo_triggered()
     ui->vedio->setGeometry(0, 0 , ui->stackedWidgetVideo->width(), ui->stackedWidgetVideo->height());
     ui->qCompass->setGeometry(ui->stackedWidgetVideo->width() - 160, 0, 160, 160);
     ui->qADI->setGeometry(ui->stackedWidgetVideo->width() - 320, 0, 160, 160);
+
+    ui->vedioPanel->setGeometry(ui->stackedWidgetVideo->width() - 320, 160, 320, 30);
 }
 
 void MainWindow::on_actionControl_triggered()
@@ -1099,7 +298,6 @@ void MainWindow::on_actionSetings_triggered()
     ui->textLogInfo->verticalScrollBar()->setValue(
                 ui->textLogInfo->verticalScrollBar()->maximum());
 }
-
 
 void MainWindow::on_armCheckBox_stateChanged(int state)
 {
@@ -1296,7 +494,6 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
     }
 }
 
-
 void MainWindow::on_connectedGamepadsChanged()
 {
     qDebug() << "on_connectedGamepadsChanged";
@@ -1309,7 +506,7 @@ void MainWindow::on_connectedGamepadsChanged()
         {
             connectJoystickSlots(false, m_joystick);
 
-            QIcon icon = QIcon(":/icon/icon/joystick_red.svg");
+            QIcon icon = QIcon(":/assets/icon/joystick_red.svg");
             ui->actionJoystick->setIcon(icon);
 
             delete m_joystick;
@@ -1318,7 +515,7 @@ void MainWindow::on_connectedGamepadsChanged()
     }
     else
     {
-        QIcon icon = QIcon(":/icon/icon/joystick_black.svg");
+        QIcon icon = QIcon(":/assets/icon/joystick_black.svg");
         ui->actionJoystick->setIcon(icon);
 
         m_joystick = new QGamepad(*joysticks.begin(), this);
@@ -1332,68 +529,6 @@ void MainWindow::on_connectedGamepadsChanged()
 void MainWindow::on_listWidget_currentRowChanged(int currentRow)
 {
     ui->stackedWidgetConfig->setCurrentIndex(currentRow);
-}
-
-void MainWindow::on_actionJoystick_triggered()
-{
-    ui->stackedWidgetMain->setCurrentIndex(3);
-    ui->listWidget->setCurrentRow(1);
-}
-
-void MainWindow::on_joystick_axisLeftXChanged(double value)
-{
-    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 3)
-    {
-        ui->axisLeftXSlider->setValue(static_cast<int>(value * 50 + 50));
-    }
-    else
-    {
-//        qDebug() << "Left X" << value;
-
-        manual_control.y = static_cast<int16_t>(value * 1000);
-    }
-}
-
-void MainWindow::on_joystick_axisLeftYChanged(double value)
-{
-    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 3)
-    {
-        ui->axisLeftYSlider->setValue(static_cast<int>(value * 50 + 50));
-    }
-    else
-    {
-//        qDebug() << "Left Y" << value;
-
-        manual_control.x = static_cast<int16_t>(value * 1000);
-    }
-}
-
-void MainWindow::on_joystick_axisRightXChanged(double value)
-{
-    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 3)
-    {
-        ui->axisRightXSlider->setValue(static_cast<int>(value * 50 + 50));
-    }
-    else
-    {
-//        qDebug() << "Right X" << value;
-
-        manual_control.r = static_cast<int16_t>(value * 1000);
-    }
-}
-
-void MainWindow::on_joystick_axisRightYChanged(double value)
-{
-    if (ui->listWidget->currentRow() == 1 && ui->stackedWidgetMain->currentIndex() == 3)
-    {
-        ui->axisRightYSlider->setValue(static_cast<int>(value * 50 + 50));
-    }
-    else
-    {
-//        qDebug() << "Right Y" << value;
-
-        manual_control.z = static_cast<int16_t>(value * 1000);
-    }
 }
 
 void MainWindow::on_lowerControlButton_clicked()
@@ -1443,4 +578,366 @@ void MainWindow::on_upperCloseControl_stateChanged(int state)
     default:
         ;
     }
+}
+
+void MainWindow::on_verticalSliderPWM_1_valueChanged(int value)
+{
+    ui->pwmBox_1->setValue(value);
+    on_pwmBox_1_editingFinished();
+}
+
+void MainWindow::on_clearPwmButton_1_pressed()
+{
+    ui->verticalSliderPWM_1->setValue(0);
+    ui->pwmBox_1->setValue(0);
+}
+
+void MainWindow::on_pwmBox_1_editingFinished()
+{
+    ui->verticalSliderPWM_1->blockSignals(true);
+    ui->verticalSliderPWM_1->setValue(ui->pwmBox_1->value());
+    ui->verticalSliderPWM_1->blockSignals(false);
+    // set pwm here
+    pwmOutput[0] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_1->value());
+//    qDebug() << "finished:" << ui->pwmBox_1->value();
+}
+
+void MainWindow::on_verticalSliderPWM_2_valueChanged(int value)
+{
+    ui->pwmBox_2->setValue(value);
+    on_pwmBox_2_editingFinished();
+}
+
+void MainWindow::on_clearPwmButton_2_pressed()
+{
+    ui->verticalSliderPWM_2->setValue(0);
+    ui->pwmBox_2->setValue(0);
+}
+
+void MainWindow::on_pwmBox_2_editingFinished()
+{
+    ui->verticalSliderPWM_2->blockSignals(true);
+    ui->verticalSliderPWM_2->setValue(ui->pwmBox_2->value());
+    ui->verticalSliderPWM_2->blockSignals(false);
+    // set pwm here
+    pwmOutput[1] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_2->value());
+//    qDebug() << "finished:" << ui->pwmBox_2->value();
+}
+
+void MainWindow::on_verticalSliderPWM_3_valueChanged(int value)
+{
+    ui->pwmBox_3->setValue(value);
+    on_pwmBox_3_editingFinished();
+}
+
+void MainWindow::on_clearPwmButton_3_pressed()
+{
+    ui->verticalSliderPWM_3->setValue(0);
+    ui->pwmBox_3->setValue(0);
+}
+
+void MainWindow::on_pwmBox_3_editingFinished()
+{
+    ui->verticalSliderPWM_3->blockSignals(true);
+    ui->verticalSliderPWM_3->setValue(ui->pwmBox_3->value());
+    ui->verticalSliderPWM_3->blockSignals(false);
+    // set pwm here
+    pwmOutput[2] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_3->value());
+//    qDebug() << "finished:" << ui->pwmBox_3->value();
+}
+
+void MainWindow::on_verticalSliderPWM_4_valueChanged(int value)
+{
+    ui->pwmBox_4->setValue(value);
+    on_pwmBox_4_editingFinished();
+}
+
+void MainWindow::on_clearPwmButton_4_pressed()
+{
+    ui->verticalSliderPWM_4->setValue(0);
+    ui->pwmBox_4->setValue(0);
+}
+
+void MainWindow::on_pwmBox_4_editingFinished()
+{
+    ui->verticalSliderPWM_4->blockSignals(true);
+    ui->verticalSliderPWM_4->setValue(ui->pwmBox_4->value());
+    ui->verticalSliderPWM_4->blockSignals(false);
+    // set pwm here
+    pwmOutput[3] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_4->value());
+//    qDebug() << "finished:" << ui->pwmBox_4->value();
+}
+
+void MainWindow::on_verticalSliderPWM_5_valueChanged(int value)
+{
+    ui->pwmBox_5->setValue(value);
+    on_pwmBox_5_editingFinished();
+}
+
+void MainWindow::on_clearPwmButton_5_pressed()
+{
+    ui->verticalSliderPWM_5->setValue(0);
+    ui->pwmBox_5->setValue(0);
+}
+
+void MainWindow::on_pwmBox_5_editingFinished()
+{
+    ui->verticalSliderPWM_5->blockSignals(true);
+    ui->verticalSliderPWM_5->setValue(ui->pwmBox_5->value());
+    ui->verticalSliderPWM_5->blockSignals(false);
+    // set pwm here
+    pwmOutput[4] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_5->value());
+//    qDebug() << "finished:" << ui->pwmBox_5->value();
+}
+
+void MainWindow::on_verticalSliderPWM_6_valueChanged(int value)
+{
+    ui->pwmBox_6->setValue(value);
+    on_pwmBox_6_editingFinished();
+}
+
+void MainWindow::on_clearPwmButton_6_pressed()
+{
+    ui->verticalSliderPWM_6->setValue(0);
+    ui->pwmBox_6->setValue(0);
+}
+
+void MainWindow::on_pwmBox_6_editingFinished()
+{
+    ui->verticalSliderPWM_6->blockSignals(true);
+    ui->verticalSliderPWM_6->setValue(ui->pwmBox_6->value());
+    ui->verticalSliderPWM_6->blockSignals(false);
+    // set pwm here
+    pwmOutput[5] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_6->value());
+//    qDebug() << "finished:" << ui->pwmBox_6->value();
+}
+
+void MainWindow::on_verticalSliderPWM_7_valueChanged(int value)
+{
+    ui->pwmBox_7->setValue(value);
+    on_pwmBox_7_editingFinished();
+}
+
+void MainWindow::on_clearPwmButton_7_pressed()
+{
+    ui->verticalSliderPWM_7->setValue(0);
+    ui->pwmBox_7->setValue(0);
+}
+
+void MainWindow::on_pwmBox_7_editingFinished()
+{
+    ui->verticalSliderPWM_7->blockSignals(true);
+    ui->verticalSliderPWM_7->setValue(ui->pwmBox_7->value());
+    ui->verticalSliderPWM_7->blockSignals(false);
+    // set pwm here
+    pwmOutput[6] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_7->value());
+//    qDebug() << "finished:" << ui->pwmBox_7->value();
+}
+
+void MainWindow::on_verticalSliderPWM_8_valueChanged(int value)
+{
+    ui->pwmBox_8->setValue(value);
+//    emit ui->pwmBox_8->editingFinished();
+    on_pwmBox_8_editingFinished();
+}
+
+void MainWindow::on_clearPwmButton_8_pressed()
+{
+    ui->verticalSliderPWM_8->setValue(0);
+    ui->pwmBox_8->setValue(0);
+}
+
+void MainWindow::on_pwmBox_8_editingFinished()
+{
+    ui->verticalSliderPWM_8->blockSignals(true);
+    ui->verticalSliderPWM_8->setValue(ui->pwmBox_8->value());
+    ui->verticalSliderPWM_8->blockSignals(false);
+    // set pwm here
+    pwmOutput[7] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_8->value());
+//    qDebug() << "finished:" << ui->pwmBox_8->value();
+}
+
+void MainWindow::on_checkBoxThrustersTest_stateChanged(int state)
+{
+    switch (state)
+    {
+    case Qt::Checked:
+
+        ui->verticalSliderPWM_1->setEnabled(true);
+        ui->pwmBox_1->setEnabled(true);
+        ui->clearPwmButton_1->setEnabled(true);
+
+        ui->verticalSliderPWM_2->setEnabled(true);
+        ui->pwmBox_2->setEnabled(true);
+        ui->clearPwmButton_2->setEnabled(true);
+
+        ui->verticalSliderPWM_3->setEnabled(true);
+        ui->pwmBox_3->setEnabled(true);
+        ui->clearPwmButton_3->setEnabled(true);
+
+        ui->verticalSliderPWM_4->setEnabled(true);
+        ui->pwmBox_4->setEnabled(true);
+        ui->clearPwmButton_4->setEnabled(true);
+
+        ui->verticalSliderPWM_5->setEnabled(true);
+        ui->pwmBox_5->setEnabled(true);
+        ui->clearPwmButton_5->setEnabled(true);
+
+        ui->verticalSliderPWM_6->setEnabled(true);
+        ui->pwmBox_6->setEnabled(true);
+        ui->clearPwmButton_6->setEnabled(true);
+
+        ui->verticalSliderPWM_7->setEnabled(true);
+        ui->pwmBox_7->setEnabled(true);
+        ui->clearPwmButton_7->setEnabled(true);
+
+        ui->verticalSliderPWM_8->setEnabled(true);
+        ui->pwmBox_8->setEnabled(true);
+        ui->clearPwmButton_8->setEnabled(true);
+
+        thrustersTestTimer.start();
+
+        break;
+
+    case Qt::Unchecked:
+
+        emit ui->clearPwmButton_1->pressed();
+        ui->verticalSliderPWM_1->setEnabled(false);
+        ui->pwmBox_1->setEnabled(false);
+        ui->clearPwmButton_1->setEnabled(false);
+
+        emit ui->clearPwmButton_2->pressed();
+        ui->verticalSliderPWM_2->setEnabled(false);
+        ui->pwmBox_2->setEnabled(false);
+        ui->clearPwmButton_2->setEnabled(false);
+
+        emit ui->clearPwmButton_3->pressed();
+        ui->verticalSliderPWM_3->setEnabled(false);
+        ui->pwmBox_3->setEnabled(false);
+        ui->clearPwmButton_3->setEnabled(false);
+
+        emit ui->clearPwmButton_4->pressed();
+        ui->verticalSliderPWM_4->setEnabled(false);
+        ui->pwmBox_4->setEnabled(false);
+        ui->clearPwmButton_4->setEnabled(false);
+
+        emit ui->clearPwmButton_5->pressed();
+        ui->verticalSliderPWM_5->setEnabled(false);
+        ui->pwmBox_5->setEnabled(false);
+        ui->clearPwmButton_5->setEnabled(false);
+
+        emit ui->clearPwmButton_6->pressed();
+        ui->verticalSliderPWM_6->setEnabled(false);
+        ui->pwmBox_6->setEnabled(false);
+        ui->clearPwmButton_6->setEnabled(false);
+
+        emit ui->clearPwmButton_7->pressed();
+        ui->verticalSliderPWM_7->setEnabled(false);
+        ui->pwmBox_7->setEnabled(false);
+        ui->clearPwmButton_7->setEnabled(false);
+
+        emit ui->clearPwmButton_8->pressed();
+        ui->verticalSliderPWM_8->setEnabled(false);
+        ui->pwmBox_8->setEnabled(false);
+        ui->clearPwmButton_8->setEnabled(false);
+
+        pwmOutput[0] = 1500;
+        pwmOutput[1] = 1500;
+        pwmOutput[2] = 1500;
+        pwmOutput[3] = 1500;
+        pwmOutput[4] = 1500;
+        pwmOutput[5] = 1500;
+        pwmOutput[6] = 1500;
+        pwmOutput[7] = 1500;
+
+        thrustersTestTimer.stop();
+
+        AS::as_api_send_rc_channels_override(currentVehicle, 1,
+                pwmOutput[0],
+                pwmOutput[1],
+                pwmOutput[2],
+                pwmOutput[3],
+                pwmOutput[4],
+                pwmOutput[5],
+                pwmOutput[6],
+                pwmOutput[7]);
+
+        AS::as_api_vehicle_disarm(currentVehicle, 1);
+
+        break;
+
+    default:
+        break;
+    }
+}
+
+void MainWindow::on_checkBoxVedioPanle_stateChanged(int arg1)
+{
+    if (arg1)
+    {
+        ui->vedioPanel->show();
+    }
+    else
+    {
+        ui->vedioPanel->hide();
+    }
+}
+
+void MainWindow::on_checkBoxADI_stateChanged(int arg1)
+{
+    if (arg1)
+    {
+        ui->qADI->show();
+        ui->labelADI->show();
+    }
+    else
+    {
+        ui->qADI->hide();
+        ui->labelADI->hide();
+    }
+}
+
+void MainWindow::on_checkBoxCompass_stateChanged(int arg1)
+{
+    if (arg1)
+    {
+        ui->qCompass->show();
+        ui->labelCompass->show();
+    }
+    else
+    {
+        ui->qCompass->hide();
+        ui->labelCompass->hide();
+    }
+}
+
+void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
+{
+    if (!videoOk)
+    {
+        return;
+    }
+
+    if (arg1)
+    {
+        if (_vlcPlayer->state() == Vlc::Stopped)
+        {
+            _vlcPlayer->play();
+        }
+
+        ui->vedio->show();
+    }
+    else
+    {
+        if (_vlcPlayer->state() != Vlc::Stopped)
+        {
+            _vlcPlayer->stop();
+        }
+        ui->vedio->hide();
+    }
+}
+
+void MainWindow::on_upperControlButton_clicked()
+{
+    ui->stackedWidgetMain->setCurrentIndex(1);
 }

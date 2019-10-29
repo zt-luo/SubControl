@@ -7,6 +7,7 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
     w.setChartsSize();
+    w.resizeWindowsManual();
 
     return a.exec();
 }

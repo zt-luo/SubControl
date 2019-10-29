@@ -26,9 +26,13 @@ CONFIG += c++11
 
 SOURCES += \
         chart.cpp \
+        control.cpp \
+        joystick.cpp \
         main.cpp \
         mainwindow.cpp \
-        qFlightInstruments.cpp
+        qFlightInstruments.cpp \
+        timer.cpp \
+        video.cpp
 
 HEADERS += \
         chart.h \
@@ -56,4 +60,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES +=
 
 RESOURCES += \
-    icon.qrc
+    assets.qrc

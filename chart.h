@@ -63,7 +63,7 @@ protected:
     void stringToHtml(QString &str, QColor _color);
 
 private:
-    const static int seriesCount = 3;
+    const static int seriesCount = 4;
     qreal m_x;
     qreal m_y[seriesCount];
     int xAxisMax;

@@ -8,6 +8,7 @@
 #include <QtWidgets/QLabel>
 #include <QGamepadManager>
 #include <QtGamepad/QGamepad>
+#include <QSettings>
 
 #include "VLCQtWidgets/WidgetVideo.h"
 #include "VLCQtCore/Common.h"
@@ -33,6 +34,7 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void setChartsSize();
+    void resizeWindowsManual();
 
 private slots:
 
@@ -69,6 +71,66 @@ private slots:
     void on_joystick_axisLeftYChanged(double value);
     void on_joystick_axisRightXChanged(double value);
     void on_joystick_axisRightYChanged(double value);
+    void on_joystick_buttonUpChanged(bool pressed);
+    void on_joystick_buttonDownChanged(bool pressed);
+    void on_joystick_buttonLeftChanged(bool pressed);
+    void on_joystick_buttonRightChanged(bool pressed);
+    void on_joystick_buttonXChanged(bool pressed);
+    void on_joystick_buttonYChanged(bool pressed);
+    void on_joystick_buttonAChanged(bool pressed);
+    void on_joystick_buttonBChanged(bool pressed);
+    void on_joystick_buttonL1Changed(bool pressed);
+    void on_joystick_buttonL2Changed(bool pressed);
+    void on_joystick_buttonL3Changed(bool pressed);
+    void on_joystick_buttonSelectChanged(bool pressed);
+    void on_joystick_buttonR1Changed(bool pressed);
+    void on_joystick_buttonR2Changed(bool pressed);
+    void on_joystick_buttonR3Changed(bool pressed);
+    void on_joystick_buttonStartChanged(bool pressed);
+
+    void on_verticalSliderPWM_1_valueChanged(int value);
+    void on_clearPwmButton_1_pressed();
+    void on_pwmBox_1_editingFinished();
+
+    void on_verticalSliderPWM_2_valueChanged(int value);
+    void on_clearPwmButton_2_pressed();
+    void on_pwmBox_2_editingFinished();
+
+    void on_verticalSliderPWM_3_valueChanged(int value);
+    void on_clearPwmButton_3_pressed();
+    void on_pwmBox_3_editingFinished();
+
+    void on_verticalSliderPWM_4_valueChanged(int value);
+    void on_clearPwmButton_4_pressed();
+    void on_pwmBox_4_editingFinished();
+
+    void on_verticalSliderPWM_5_valueChanged(int value);
+    void on_clearPwmButton_5_pressed();
+    void on_pwmBox_5_editingFinished();
+
+    void on_verticalSliderPWM_6_valueChanged(int value);
+    void on_clearPwmButton_6_pressed();
+    void on_pwmBox_6_editingFinished();
+
+    void on_verticalSliderPWM_7_valueChanged(int value);
+    void on_clearPwmButton_7_pressed();
+    void on_pwmBox_7_editingFinished();
+
+    void on_verticalSliderPWM_8_valueChanged(int value);
+    void on_clearPwmButton_8_pressed();
+    void on_pwmBox_8_editingFinished();
+
+    void on_checkBoxThrustersTest_stateChanged(int state);
+
+    void on_checkBoxVedioPanle_stateChanged(int arg1);
+
+    void on_checkBoxADI_stateChanged(int arg1);
+
+    void on_checkBoxCompass_stateChanged(int arg1);
+
+    void on_checkBoxVideoLink_stateChanged(int arg1);
+
+    void on_upperControlButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -102,6 +164,7 @@ private:
     QTimer vehicleCheckTimer;
     QTimer namedValueTimer;
     QTimer manualControlTimer;
+    QTimer thrustersTestTimer;
 
     typedef struct
     {
@@ -115,8 +178,11 @@ private:
     manual_control_t manual_control;
 
     uint8_t currentVehicle;
+    bool videoOk;
 
     AS::Vehicle_Data_t *vehicle_data_g;
+
+    uint16_t pwmOutput[8] = {1500};
 
     QHash<QString, float> namedFloatHash;
     QHash<QString, int> activeVehicleHash;
@@ -144,6 +210,10 @@ private:
     void vehicleCheck();
     void updateNamedValue();
     void manualControl();
+    void thrustersTest();
+
+    void writeSettings();
+    void readSettings();
 };
 
 #endif // MAINWINDOW_H

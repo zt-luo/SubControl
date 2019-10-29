@@ -123,7 +123,7 @@ void Chart::setAxis(int m_xAxisMax,
 void Chart::seriesAppendData(qreal _m_y[], qreal _d_x)
 {
     m_x += _d_x;
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < seriesCount; i++)
     {
         if (nullptr != m_series[i])
         {
