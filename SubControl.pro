@@ -25,20 +25,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        chart.cpp \
-        control.cpp \
-        joystick.cpp \
-        main.cpp \
-        mainwindow.cpp \
-        qFlightInstruments.cpp \
-        timer.cpp \
-        video.cpp
+    src/chart.cpp \
+    src/control.cpp \
+    src/joystick.cpp \
+    src/main.cpp \
+    src/mainwindow.cpp \
+    src/qFlightInstruments.cpp \
+    src/timer.cpp \
+    src/video.cpp
 
 HEADERS += \
-        chart.h \
-        chart.h \
-        mainwindow.h \
-        qFlightInstruments.h
+    inc/chart.h \
+    inc/mainwindow.h \
+    inc/qFlightInstruments.h
 
 FORMS += \
         mainwindow.ui

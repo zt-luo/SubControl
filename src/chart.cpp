@@ -27,7 +27,7 @@
 **
 ****************************************************************************/
 
-#include "chart.h"
+#include "inc/chart.h"
 #include <QtCharts/QAbstractAxis>
 #include <QtCharts/QSplineSeries>
 #include <QtCharts/QValueAxis>

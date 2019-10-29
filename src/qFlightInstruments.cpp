@@ -8,7 +8,7 @@
 #include <QTableWidget>
 #include <QHeaderView>
 
-#include "qFlightInstruments.h"
+#include "inc/qFlightInstruments.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////

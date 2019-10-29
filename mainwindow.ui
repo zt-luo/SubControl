@@ -2772,13 +2772,13 @@ color: rgb(255, 255, 255);</string>
   <customwidget>
    <class>QADI</class>
    <extends>QWidget</extends>
-   <header>qFlightInstruments.h</header>
+   <header>inc/qFlightInstruments.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>QCompass</class>
    <extends>QWidget</extends>
-   <header>qFlightInstruments.h</header>
+   <header>inc/qFlightInstruments.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
