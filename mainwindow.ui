@@ -22,14 +22,14 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="mainWindowsVerticalLayout" stretch="5000,1">
+     <layout class="QVBoxLayout" name="mainWindowsVerticalLayout" stretch="0,1">
       <property name="spacing">
        <number>0</number>
       </property>
       <item>
        <widget class="QStackedWidget" name="stackedWidgetMain">
         <property name="currentIndex">
-         <number>1</number>
+         <number>3</number>
         </property>
         <widget class="VlcWidgetVideo" name="stackedWidgetVideo">
          <widget class="VlcWidgetVideo" name="vedio" native="true">
@@ -412,7 +412,7 @@ color: rgb(255, 255, 255);</string>
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="">
+              <widget class="QWidget" name="layoutWidget">
                <property name="geometry">
                 <rect>
                  <x>12</x>
@@ -1916,7 +1916,7 @@ color: rgb(255, 255, 255);</string>
           <item>
            <widget class="QStackedWidget" name="stackedWidgetConfig">
             <property name="currentIndex">
-             <number>0</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="stackedWidgetConfigGeneral">
              <widget class="QLabel" name="label">

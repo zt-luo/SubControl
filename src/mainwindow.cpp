@@ -269,11 +269,17 @@ void MainWindow::on_actionVideo_triggered()
 
     ui->stackedWidgetMain->setCurrentIndex(0);
 
-    ui->vedio->setGeometry(0, 0 , ui->stackedWidgetVideo->width(), ui->stackedWidgetVideo->height());
-    ui->qCompass->setGeometry(ui->stackedWidgetVideo->width() - 160, 0, 160, 160);
-    ui->qADI->setGeometry(ui->stackedWidgetVideo->width() - 320, 0, 160, 160);
+    int m_width = ui->stackedWidgetVideo->width();
+    int m_height = ui->stackedWidgetVideo->height();
+    ui->vedio->setGeometry(0, 0 , m_width, m_height);
+    ui->picture->setGeometry(0, 0 , m_width, m_height);
 
-    ui->vedioPanel->setGeometry(ui->stackedWidgetVideo->width() - 320, 160, 320, 30);
+    ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
+    ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
+    ui->labelCompass->setGeometry(m_width - 160, 0, 160, 160);
+    ui->labelADI->setGeometry(m_width - 320, 0, 160, 160);
+
+    ui->vedioPanel->setGeometry(m_width - 320, 160, 320, 30);
 }
 
 void MainWindow::on_actionControl_triggered()
@@ -306,27 +312,39 @@ void MainWindow::on_armCheckBox_stateChanged(int state)
         return;
     }
 
-    switch (state)
+    QObject::disconnect(armCheckBox, &QCheckBox::stateChanged,
+                     this, &MainWindow::on_armCheckBox_stateChanged);
+
+    if (state == Qt::Checked)
     {
-    case Qt::Checked:
-        ui->actionDisarm->setDisabled(false);
-        ui->upperCloseControl->setEnabled(true);
+        armCheckBox->setCheckState(Qt::Unchecked);
+        QMessageBox::StandardButton rb =
+                QMessageBox::question(this,
+                                      "Arm vehicle",
+                                      "Do you want to ARM vehicle?",
+                                      QMessageBox::Yes | QMessageBox::No,
+                                      QMessageBox::Yes);
+        if(rb == QMessageBox::Yes)
+        {
+            armCheckBox->setCheckState(Qt::Checked);
+            ui->actionDisarm->setDisabled(false);
+            ui->upperCloseControl->setEnabled(true);
 
-        AS::as_api_vehicle_arm(currentVehicle, 1);
-        break;
-
-    case Qt::Unchecked:
+            AS::as_api_vehicle_arm(currentVehicle, 1);
+        }
+    }
+    else if (state == Qt::Unchecked)
+    {
         ui->actionDisarm->setDisabled(true);
         ui->upperCloseControl->setCheckState(Qt::Unchecked);
         ui->upperCloseControl->setEnabled(false);
+        ui->checkBoxThrustersTest->setCheckState(Qt::Unchecked);
 
         AS::as_api_vehicle_disarm(currentVehicle, 1);
-        break;
-
-    default:
-        ;
     }
 
+    QObject::connect(armCheckBox, &QCheckBox::stateChanged,
+                     this, &MainWindow::on_armCheckBox_stateChanged);
 }
 
 void MainWindow::on_modeComboBox_currentIndexChanged(int index)
@@ -762,6 +780,15 @@ void MainWindow::on_checkBoxThrustersTest_stateChanged(int state)
     switch (state)
     {
     case Qt::Checked:
+
+        if (armCheckBox->checkState() == Qt::Unchecked)
+        {
+            ui->checkBoxThrustersTest->setCheckState(Qt::Unchecked);
+            QMessageBox::critical(this, "Arm vehilce first",
+                                  "Vehilce is disarmed, please ARM vehilce first.",
+                                  QMessageBox::Ok, QMessageBox::Ok);
+            break;
+        }
 
         ui->verticalSliderPWM_1->setEnabled(true);
         ui->pwmBox_1->setEnabled(true);
