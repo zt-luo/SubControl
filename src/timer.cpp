@@ -26,7 +26,7 @@ void MainWindow::setupTimer()
 //    adiCompassTimer.start();
 
     QObject::connect(&namedValueTimer, &QTimer::timeout, this, &MainWindow::updateNamedValue);
-    namedValueTimer.setInterval(5);
+    namedValueTimer.setInterval(50);
 
     QObject::connect(&vehicleCheckTimer, &QTimer::timeout, this, &MainWindow::vehicleCheck);
     vehicleCheckTimer.setInterval(500);
@@ -161,6 +161,7 @@ void MainWindow::fetchStatusTex()
 
 void MainWindow::updateChart()
 {
+//    return;
     float yaw = 0, roll = 0, pitch = 0, depth = 0;
     static int64_t last_time_us, last_d_time_us;
     int64_t time_us = 0, d_time_us = 0;
@@ -174,7 +175,6 @@ void MainWindow::updateChart()
     else
     {
         AS::Vehicle_Data_t *vehicle_data;
-        vehicle_data = new AS::Vehicle_Data_t;
 
         vehicle_data = AS::as_api_get_vehicle_data(currentVehicle);
 
@@ -236,7 +236,7 @@ void MainWindow::updateAdiCompass()
     if(0 != AS::as_api_check_vehicle(currentVehicle))
     {
         AS::Vehicle_Data_t *vehicle_data;
-        vehicle_data = new AS::Vehicle_Data_t;
+//        vehicle_data = new AS::Vehicle_Data_t;
 
         vehicle_data = AS::as_api_get_vehicle_data(currentVehicle);
 
@@ -270,7 +270,6 @@ void MainWindow::updateNamedValue()
     if(0 != AS::as_api_check_vehicle(currentVehicle))
     {
         AS::mavlink_named_value_float_t *value_float;
-        value_float = new AS::mavlink_named_value_float_t;
 
         value_float = AS::as_api_named_val_float_queue_pop(currentVehicle);
 

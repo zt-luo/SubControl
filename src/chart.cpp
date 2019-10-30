@@ -123,11 +123,17 @@ void Chart::setAxis(int m_xAxisMax,
 void Chart::seriesAppendData(qreal _m_y[], qreal _d_x)
 {
     m_x += _d_x;
+    static bool full = false;
     for (int i = 0; i < seriesCount; i++)
     {
         if (nullptr != m_series[i])
         {
             m_series[i]->append(m_x, _m_y[i]);
+
+            if(full)
+            {
+                m_series[i]->remove(0);
+            }
         }
     }
 
@@ -135,6 +141,7 @@ void Chart::seriesAppendData(qreal _m_y[], qreal _d_x)
     if (m_x > m_axisX->max())
     {
         scroll(plotArea().width() / (m_axisX->tickCount() - 1), 0);
+        full = true;
     }
 }
 
