@@ -1,6 +1,6 @@
 [![HitCount](http://hits.dwyl.io/zt-luo/SubControl.svg)](http://hits.dwyl.io/zt-luo/SubControl)
 
-
+based on [ardusub_api](https://github.com/zt-luo/ardusub_api) project.
 
 ## Screenshot
 
