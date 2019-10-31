@@ -17,5 +17,6 @@
         <file>assets/icon/video.svg</file>
         <file>assets/icon/video2.svg</file>
         <file>assets/picture/shuimu-004.jpg</file>
+        <file>assets/icon/monitor.svg</file>
     </qresource>
 </RCC>

@@ -38,7 +38,11 @@ void MainWindow::setupTimer()
 
     QObject::connect(&thrustersTestTimer, &QTimer::timeout, this, &MainWindow::thrustersTest);
     thrustersTestTimer.setInterval(50);
-//    manualControlTimer.start();
+//    thrustersTestTimer.start();
+
+    QObject::connect(&countScreenTimer, &QTimer::timeout, this, &MainWindow::countScreens);
+    countScreenTimer.setInterval(500);
+    countScreenTimer.start();
 }
 
 void MainWindow::vehicleCheck()
@@ -310,5 +314,19 @@ void MainWindow::updateNamedValue()
     if(iter != namedFloatHash.end())
     {
         ui->line3->setText(QString("%1").arg(iter.value()));
+    }
+}
+
+void MainWindow::countScreens()
+{
+    QList<QScreen *> m_screens = QGuiApplication::screens();
+
+    if (m_screens.count() >= 2 && videoWindow->isHidden())
+    {
+        ui->actionAdvanceMode->setEnabled(true);
+    }
+    else
+    {
+        ui->actionAdvanceMode->setEnabled(false);
     }
 }

@@ -3090,6 +3090,7 @@ color: rgb(255, 255, 255);</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionAdvanceMode"/>
    <addaction name="separator"/>
   </widget>
   <action name="actionDisarm">
@@ -3112,7 +3113,7 @@ color: rgb(255, 255, 255);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="assets.qrc">
+    <iconset resource="../assets.qrc">
      <normaloff>:/assets/icon/video.svg</normaloff>:/assets/icon/video.svg</iconset>
    </property>
    <property name="text">
@@ -3127,7 +3128,7 @@ color: rgb(255, 255, 255);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="assets.qrc">
+    <iconset resource="../assets.qrc">
      <normaloff>:/assets/icon/control.svg</normaloff>:/assets/icon/control.svg</iconset>
    </property>
    <property name="text">
@@ -3142,7 +3143,7 @@ color: rgb(255, 255, 255);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="assets.qrc">
+    <iconset resource="../assets.qrc">
      <normaloff>:/assets/icon/menu.svg</normaloff>:/assets/icon/menu.svg</iconset>
    </property>
    <property name="text">
@@ -3151,11 +3152,23 @@ color: rgb(255, 255, 255);</string>
   </action>
   <action name="actionJoystick">
    <property name="icon">
-    <iconset resource="assets.qrc">
+    <iconset resource="../assets.qrc">
      <normaloff>:/assets/icon/joystick_red.svg</normaloff>:/assets/icon/joystick_red.svg</iconset>
    </property>
    <property name="text">
     <string>Joystick</string>
+   </property>
+  </action>
+  <action name="actionAdvanceMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../assets.qrc">
+     <normaloff>:/assets/icon/monitor.svg</normaloff>:/assets/icon/monitor.svg</iconset>
+   </property>
+   <property name="text">
+    <string>AdvanceMode</string>
    </property>
   </action>
  </widget>
@@ -3181,7 +3194,7 @@ color: rgb(255, 255, 255);</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="assets.qrc"/>
+  <include location="../assets.qrc"/>
  </resources>
  <connections/>
 </ui>

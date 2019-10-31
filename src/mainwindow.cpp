@@ -9,6 +9,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    videoWindow(new VideoWindow(this)),
     m_yawRollChart(new YawRollChart),
     m_yawRollScene(new QGraphicsScene),
     m_pitchChart(new PitchChart),
@@ -23,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowIcon(QIcon(":/assets/icon/main_icon.svg"));
     setupToolBars();
+    countScreens();
 
     QCoreApplication::setOrganizationName("ARMs of HUST");
     QCoreApplication::setOrganizationDomain("https://github.com/hust-arms");
@@ -63,10 +65,14 @@ MainWindow::MainWindow(QWidget *parent) :
     setupVideo();
     setupJoystick();
     setupConfigView();
+
+    connect(videoWindow, &VideoWindow::closeWindows, this, &MainWindow::on_closeWindow_triggered);
 }
+
 
 MainWindow::~MainWindow()
 {
+    videoWindow->close();
     writeSettings();
     delete ui;
 }
@@ -318,13 +324,13 @@ void MainWindow::on_armCheckBox_stateChanged(int state)
     if (state == Qt::Checked)
     {
         armCheckBox->setCheckState(Qt::Unchecked);
-        QMessageBox::StandardButton rb =
+        QMessageBox::StandardButton ret =
                 QMessageBox::question(this,
                                       "Arm vehicle",
                                       "Do you want to ARM vehicle?",
                                       QMessageBox::Yes | QMessageBox::No,
                                       QMessageBox::Yes);
-        if(rb == QMessageBox::Yes)
+        if(ret == QMessageBox::Yes)
         {
             armCheckBox->setCheckState(Qt::Checked);
             ui->actionDisarm->setDisabled(false);
@@ -510,6 +516,8 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
     default:
         break;
     }
+
+    ui->actionAdvanceMode->setChecked(false);
 }
 
 void MainWindow::on_connectedGamepadsChanged()
@@ -967,4 +975,63 @@ void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
 void MainWindow::on_upperControlButton_clicked()
 {
     ui->stackedWidgetMain->setCurrentIndex(1);
+}
+
+void MainWindow::on_actionAdvanceMode_triggered()
+{
+    QList<QScreen *> m_screens = QGuiApplication::screens();
+    if (m_screens.count() < 2)
+    {
+        return;
+    }
+
+    QScreen *screen = m_screens[0];
+    setGeometry(screen->availableGeometry());
+    setWindowState(Qt::WindowMaximized);
+
+    screen = m_screens[1];
+    videoWindow->setGeometry(screen->availableGeometry());
+    videoWindow->show();
+    videoWindow->setWindowState(Qt::WindowMaximized);
+
+    ui->actionVideo->setChecked(false);
+    ui->actionControl->setChecked(false);
+    ui->actionSetings->setChecked(false);
+    ui->actionAdvanceMode->setChecked(true);
+
+    ui->actionVideo->setDisabled(false);
+    ui->actionControl->setDisabled(false);
+    ui->actionSetings->setDisabled(false);
+    ui->actionAdvanceMode->setDisabled(true);
+    ui->actionVideo->setVisible(false);
+}
+
+void MainWindow::on_closeWindow_triggered()
+{
+    if (ui->actionAdvanceMode->isChecked())
+    {
+        ui->actionAdvanceMode->setChecked(false);
+
+        emit ui->actionVideo->trigger();
+    }
+
+    ui->actionVideo->setVisible(true);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QMessageBox::StandardButton ret =
+            QMessageBox::question(this,
+                                  "Exit",
+                                  "Do you want to close SubControl?",
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::Yes);
+    if(ret == QMessageBox::Yes)
+    {
+        event->accept();
+    }
+    else
+    {
+        event->ignore();
+    }
 }

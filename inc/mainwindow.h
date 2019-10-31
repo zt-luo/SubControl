@@ -17,6 +17,7 @@
 #include "VLCQtCore/MediaPlayer.h"
 
 #include "chart.h"
+#include "videowindow.h"
 
 namespace AS {
 #include "./ardusub_api/api/inc/ardusub_api.h"
@@ -132,8 +133,13 @@ private slots:
 
     void on_upperControlButton_clicked();
 
+    void on_actionAdvanceMode_triggered();
+
+    void on_closeWindow_triggered();
+
 private:
     Ui::MainWindow *ui;
+    VideoWindow *videoWindow;
 
     YawRollChart *m_yawRollChart;
     QGraphicsScene *m_yawRollScene;
@@ -165,6 +171,7 @@ private:
     QTimer namedValueTimer;
     QTimer manualControlTimer;
     QTimer thrustersTestTimer;
+    QTimer countScreenTimer;
 
     typedef struct
     {
@@ -211,9 +218,12 @@ private:
     void updateNamedValue();
     void manualControl();
     void thrustersTest();
+    void countScreens();
 
     void writeSettings();
     void readSettings();
+
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // MAINWINDOW_H

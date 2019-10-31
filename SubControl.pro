@@ -32,15 +32,19 @@ SOURCES += \
     src/mainwindow.cpp \
     src/qFlightInstruments.cpp \
     src/timer.cpp \
-    src/video.cpp
+    src/video.cpp \
+    src/videowindow.cpp
 
 HEADERS += \
     inc/chart.h \
     inc/mainwindow.h \
-    inc/qFlightInstruments.h
+    inc/qFlightInstruments.h \
+    inc/videowindow.h \
+    inc/videowindow.hS
 
 FORMS += \
-        mainwindow.ui
+        ui/mainwindow.ui \
+        ui/videowindow.ui
 
 CONFIG += link_pkgconfig
 
