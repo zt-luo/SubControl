@@ -509,24 +509,24 @@ void QCompass::paintEvent(QPaintEvent *)
 //        painter.drawText(QRectF(fx, fy+h/2, w, h/2), Qt::AlignCenter, s);
 ///////////////////////////////////////////////////////////////////////////////////////
 
-        int     altFontSize = 13;
+        int     altFontSize = 10;
         int     fx, fy, w, h;
         QString s;
         char    buf[200];
 
-        w  = 100;
+        w  = 80;
         h  = altFontSize + 10;
         fx = -w/2;
         fy = -h/2;
 
-        blackPen.setWidth(2);
+        blackPen.setWidth(1);
         painter.setPen(blackPen);
         painter.setBrush(QBrush(Qt::white));
         painter.setFont(QFont("Arial", altFontSize));
 
-        painter.drawRoundedRect(fx, fy, w, h, 4, 4);
+        painter.drawRoundedRect(fx, fy, w, h, 0, 4);
 
-        sprintf(buf, "D: %6.2f m", m_alt);
+        sprintf(buf, "D: %5.2f m", m_alt);
         s = buf;
         painter.drawText(QRectF(fx, fy+h/4, w, h/2), Qt::AlignCenter, s);
     }

@@ -163,6 +163,7 @@ private:
     VlcMedia *_vlcMedia;
     VlcMediaPlayer *_vlcPlayer;
 
+    QTimer vehicleDataUpdateTimer;
     QTimer closeControlTimer;
     QTimer statusTexTimer;
     QTimer chartTimer;
@@ -187,7 +188,7 @@ private:
     uint8_t currentVehicle;
     bool videoOk;
 
-    AS::Vehicle_Data_t *vehicle_data_g;
+    AS::Vehicle_Data_t *vehicle_data;
 
     uint16_t pwmOutput[8] = {1500};
 
@@ -219,6 +220,7 @@ private:
     void manualControl();
     void thrustersTest();
     void countScreens();
+    void updateVehicleData();
 
     void writeSettings();
     void readSettings();

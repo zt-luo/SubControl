@@ -38,19 +38,11 @@ void MainWindow::closeControl()
     pitch_old = pitch_now;
     roll_old = roll_now;
 
-    if(0 != AS::as_api_check_vehicle(currentVehicle))
-    {
-        AS::Vehicle_Data_t *vehicle_data;
-        vehicle_data = AS::as_api_get_vehicle_data(currentVehicle);
-        if (nullptr != vehicle_data)
-        {
-            const float degreePerRad = 180.0f / 3.1415926f;
-            depth_now = vehicle_data->alt / 1000.0;          // m
-            yaw_now = vehicle_data->yaw * degreePerRad;      // degree
-            pitch_now = vehicle_data->pitch * degreePerRad;  // degree
-            roll_now = vehicle_data->roll * degreePerRad;    // degree
-        }
-    }
+    const float degreePerRad = 180.0f / 3.1415926f;
+    depth_now = vehicle_data->alt / 1000.0;          // m
+    yaw_now = vehicle_data->yaw * degreePerRad;      // degree
+    pitch_now = vehicle_data->pitch * degreePerRad;  // degree
+    roll_now = vehicle_data->roll * degreePerRad;    // degree
 
     // depth controlor start
     if (!ui->depthPidCheckBox->checkState())

@@ -19,7 +19,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_joystick(nullptr),
     _vlcPlayer(nullptr),
     currentVehicle(0),
-    videoOk(false)
+    videoOk(false),
+    vehicle_data(new AS::Vehicle_Data_t)
 {
     ui->setupUi(this);
     setWindowIcon(QIcon(":/assets/icon/main_icon.svg"));
@@ -54,8 +55,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_depthScene->addItem(m_depthChart->legendText[0]);
 
     readSettings();
-
-    vehicle_data_g = new AS::Vehicle_Data_t;
 
 //    std::string ip("192.168.2.");
     std::string ip("serial port");

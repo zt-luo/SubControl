@@ -9,6 +9,10 @@
 
 void MainWindow::setupTimer()
 {
+    QObject::connect(&vehicleDataUpdateTimer, &QTimer::timeout, this, &MainWindow::updateVehicleData);
+    vehicleDataUpdateTimer.setInterval(25);
+    vehicleDataUpdateTimer.start();
+
     QObject::connect(&closeControlTimer, &QTimer::timeout, this, &MainWindow::closeControl);
     closeControlTimer.setInterval(50);
 //    depthPidTimer.start();
@@ -165,7 +169,6 @@ void MainWindow::fetchStatusTex()
 
 void MainWindow::updateChart()
 {
-//    return;
     float yaw = 0, roll = 0, pitch = 0, depth = 0;
     static int64_t last_time_us, last_d_time_us;
     int64_t time_us = 0, d_time_us = 0;
@@ -178,21 +181,15 @@ void MainWindow::updateChart()
     }
     else
     {
-        AS::Vehicle_Data_t *vehicle_data;
 
-        vehicle_data = AS::as_api_get_vehicle_data(currentVehicle);
+        const float degreePerRad = 180.0f / 3.1415926f;
 
-        if (nullptr != vehicle_data)
-        {
-            const float degreePerRad = 180.0f / 3.1415926f;
-
-            yaw = vehicle_data->yaw * degreePerRad;
-            roll = vehicle_data->roll * degreePerRad;
-            pitch = vehicle_data->pitch * degreePerRad;
-            depth = vehicle_data->alt / 1000.0f;
-//            depth = - (vehicle_data->press_abs2 - 1000) / 100;
-            time_us = vehicle_data->monotonic_time;
-        }
+        yaw = vehicle_data->yaw * degreePerRad;
+        roll = vehicle_data->roll * degreePerRad;
+        pitch = vehicle_data->pitch * degreePerRad;
+        depth = vehicle_data->alt / 1000.0f;
+//        depth = - (vehicle_data->press_abs2 - 1000) / 100;
+        time_us = vehicle_data->monotonic_time;
     }
 
     if (last_time_us == 0)
@@ -239,19 +236,11 @@ void MainWindow::updateAdiCompass()
     float yaw = 0, roll = 0, pitch = 0, depth =0;
     if(0 != AS::as_api_check_vehicle(currentVehicle))
     {
-        AS::Vehicle_Data_t *vehicle_data;
-//        vehicle_data = new AS::Vehicle_Data_t;
-
-        vehicle_data = AS::as_api_get_vehicle_data(currentVehicle);
-
-        if (nullptr != vehicle_data)
-        {
-            #define D_PER_RAD (180.0f / 3.1415926f)
-            yaw = vehicle_data->yaw * D_PER_RAD;
-            roll = vehicle_data->roll * D_PER_RAD;
-            pitch = vehicle_data->pitch * D_PER_RAD;
-            depth = vehicle_data->alt / 1000.0f;
-        }
+#define D_PER_RAD (180.0f / 3.1415926f)
+        yaw = vehicle_data->yaw * D_PER_RAD;
+        roll = vehicle_data->roll * D_PER_RAD;
+        pitch = vehicle_data->pitch * D_PER_RAD;
+        depth = vehicle_data->alt / 1000.0f;
     }
 
     ui->qADI->setData(roll, pitch);
@@ -329,4 +318,15 @@ void MainWindow::countScreens()
     {
         ui->actionAdvanceMode->setEnabled(false);
     }
+}
+
+
+void MainWindow::updateVehicleData()
+{
+    if (currentVehicle == 0)
+    {
+        return;
+    }
+
+    AS::as_api_get_vehicle_data2(currentVehicle, vehicle_data);
 }
