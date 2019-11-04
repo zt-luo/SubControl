@@ -66,6 +66,8 @@ MainWindow::MainWindow(QWidget *parent) :
     setupConfigView();
 
     connect(videoWindow, &VideoWindow::closeWindows, this, &MainWindow::on_closeWindow_triggered);
+    connect(this, &MainWindow::updateVehicleDataSignal,
+            videoWindow, &VideoWindow::on_updateVehicleDataSignal);
 }
 
 

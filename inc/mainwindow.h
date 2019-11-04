@@ -166,8 +166,6 @@ private:
     QTimer vehicleDataUpdateTimer;
     QTimer closeControlTimer;
     QTimer statusTexTimer;
-    QTimer chartTimer;
-    QTimer adiCompassTimer;
     QTimer vehicleCheckTimer;
     QTimer namedValueTimer;
     QTimer manualControlTimer;
@@ -226,6 +224,9 @@ private:
     void readSettings();
 
     void closeEvent(QCloseEvent *event);
+
+signals:
+    void updateVehicleDataSignal(AS::Vehicle_Data_t *vehicle_data);
 };
 
 #endif // MAINWINDOW_H

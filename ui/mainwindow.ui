@@ -29,7 +29,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidgetMain">
         <property name="currentIndex">
-         <number>3</number>
+         <number>0</number>
         </property>
         <widget class="VlcWidgetVideo" name="stackedWidgetVideo">
          <widget class="VlcWidgetVideo" name="vedio" native="true">
@@ -37,7 +37,7 @@
            <rect>
             <x>9</x>
             <y>9</y>
-            <width>771</width>
+            <width>800</width>
             <height>600</height>
            </rect>
           </property>
@@ -241,8 +241,8 @@ color: rgb(255, 255, 255);</string>
            <rect>
             <x>9</x>
             <y>9</y>
-            <width>0</width>
-            <height>16</height>
+            <width>200</width>
+            <height>200</height>
            </rect>
           </property>
           <property name="text">

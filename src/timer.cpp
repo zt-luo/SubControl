@@ -21,14 +21,6 @@ void MainWindow::setupTimer()
     statusTexTimer.setInterval(100);
 //    statusTexTimer.start();
 
-    QObject::connect(&chartTimer, &QTimer::timeout, this, &MainWindow::updateChart);
-    chartTimer.setInterval(50);
-//    chartTimer.start();
-
-    QObject::connect(&adiCompassTimer, &QTimer::timeout, this, &MainWindow::updateAdiCompass);
-    adiCompassTimer.setInterval(50);
-//    adiCompassTimer.start();
-
     QObject::connect(&namedValueTimer, &QTimer::timeout, this, &MainWindow::updateNamedValue);
     namedValueTimer.setInterval(50);
 
@@ -104,8 +96,6 @@ void MainWindow::vehicleCheck()
     if (existActiveVehicle)
     {
         statusTexTimer.start();
-        adiCompassTimer.start();
-        chartTimer.start();
         namedValueTimer.start();
 
         armCheckBox->setEnabled(true);
@@ -116,8 +106,6 @@ void MainWindow::vehicleCheck()
         currentVehicle = 0;
 
         statusTexTimer.stop();
-        adiCompassTimer.stop();
-        chartTimer.stop();
         namedValueTimer.stop();
 
         vehicleComboBox->setCurrentIndex(0);
@@ -234,14 +222,12 @@ void MainWindow::updateAdiCompass()
     }
 
     float yaw = 0, roll = 0, pitch = 0, depth =0;
-    if(0 != AS::as_api_check_vehicle(currentVehicle))
-    {
-#define D_PER_RAD (180.0f / 3.1415926f)
-        yaw = vehicle_data->yaw * D_PER_RAD;
-        roll = vehicle_data->roll * D_PER_RAD;
-        pitch = vehicle_data->pitch * D_PER_RAD;
-        depth = vehicle_data->alt / 1000.0f;
-    }
+
+    const float degreePerRad = 180.0f / 3.1415926f;
+    yaw = vehicle_data->yaw * degreePerRad;
+    roll = vehicle_data->roll * degreePerRad;
+    pitch = vehicle_data->pitch * degreePerRad;
+    depth = vehicle_data->alt / 1000.0f;
 
     ui->qADI->setData(roll, pitch);
     ui->qCompass->setYaw(yaw);
@@ -320,7 +306,6 @@ void MainWindow::countScreens()
     }
 }
 
-
 void MainWindow::updateVehicleData()
 {
     if (currentVehicle == 0)
@@ -329,4 +314,7 @@ void MainWindow::updateVehicleData()
     }
 
     AS::as_api_get_vehicle_data2(currentVehicle, vehicle_data);
+    updateChart();
+    updateAdiCompass();
+    emit updateVehicleDataSignal(vehicle_data);
 }
