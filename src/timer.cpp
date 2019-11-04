@@ -314,7 +314,16 @@ void MainWindow::updateVehicleData()
     }
 
     AS::as_api_get_vehicle_data2(currentVehicle, vehicle_data);
+
     updateChart();
-    updateAdiCompass();
-    emit updateVehicleDataSignal(vehicle_data);
+
+    if (ui->stackedWidgetMain->currentIndex() == 0)
+    {
+        updateAdiCompass();
+    }
+
+    if (videoWindow->isHidden() != true)
+    {
+        emit updateVehicleDataSignal(vehicle_data);
+    }
 }
