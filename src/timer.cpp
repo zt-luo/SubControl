@@ -296,7 +296,7 @@ void MainWindow::countScreens()
 {
     QList<QScreen *> m_screens = QGuiApplication::screens();
 
-    if (m_screens.count() >= 2 && videoWindow->isHidden())
+    if (m_screens.count() >= 2)
     {
         ui->actionAdvanceMode->setEnabled(true);
     }

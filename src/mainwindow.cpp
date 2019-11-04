@@ -56,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     readSettings();
 
-//    std::string ip("192.168.2.");
+    //    std::string ip("192.168.2.");
     std::string ip("serial port");
     AS::as_api_init(ip.c_str(), F_THREAD_NONE);
 
@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setupJoystick();
     setupConfigView();
 
-    connect(videoWindow, &VideoWindow::closeWindows, this, &MainWindow::on_closeWindow_triggered);
+    connect(videoWindow, &VideoWindow::closeWindows, this, &MainWindow::on_closeVideoWindow_triggered);
     connect(this, &MainWindow::updateVehicleDataSignal,
             videoWindow, &VideoWindow::on_updateVehicleDataSignal);
 }
@@ -153,7 +153,7 @@ void MainWindow::setupToolBars()
     QList<QAction *> actionListJoystick;
     actionListJoystick.append(ui->actionJoystick);
     ui->vehicleToolBar->addActions(actionListJoystick);
-//    ui->actionJoystick->setDisabled(true);
+    //    ui->actionJoystick->setDisabled(true);
 
     modeLable = new QLabel;
     modeLable->setText("Mode: ");
@@ -320,7 +320,7 @@ void MainWindow::on_armCheckBox_stateChanged(int state)
     }
 
     QObject::disconnect(armCheckBox, &QCheckBox::stateChanged,
-                     this, &MainWindow::on_armCheckBox_stateChanged);
+                        this, &MainWindow::on_armCheckBox_stateChanged);
 
     if (state == Qt::Checked)
     {
@@ -396,7 +396,7 @@ void MainWindow::on_modeComboBox_currentIndexChanged(int index)
 
 void MainWindow::on_vehicleComboBox_currentIndexChanged(const QString &index)
 {
-//    qDebug() << index.toInt();
+    //    qDebug() << index.toInt();
     currentVehicle = static_cast<uint8_t>(index.toInt());
 }
 
@@ -453,13 +453,13 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
         ui->textLogInfo->verticalScrollBar()->setValue(
                     ui->textLogInfo->verticalScrollBar()->maximum());
 
-        ui->actionVideo->setChecked(true);
-        ui->actionControl->setChecked(false);
-        ui->actionSetings->setChecked(false);
-
         ui->actionVideo->setDisabled(true);
         ui->actionControl->setDisabled(false);
         ui->actionSetings->setDisabled(false);
+
+        ui->actionVideo->setChecked(true);
+        ui->actionControl->setChecked(false);
+        ui->actionSetings->setChecked(false);
 
         break;
 
@@ -470,13 +470,17 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
         ui->textLogInfo->verticalScrollBar()->setValue(
                     ui->textLogInfo->verticalScrollBar()->maximum());
 
+        // only enable actionVideo when it is checked
+        if (ui->actionVideo->isChecked())
+        {
+            ui->actionVideo->setDisabled(false);
+        }
+        ui->actionControl->setDisabled(true);
+        ui->actionSetings->setDisabled(false);
+
         ui->actionVideo->setChecked(false);
         ui->actionControl->setChecked(true);
         ui->actionSetings->setChecked(false);
-
-        ui->actionVideo->setDisabled(false);
-        ui->actionControl->setDisabled(true);
-        ui->actionSetings->setDisabled(false);
 
         break;
 
@@ -487,13 +491,16 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
         ui->textLogInfo->verticalScrollBar()->setValue(
                     ui->textLogInfo->verticalScrollBar()->maximum());
 
+        if (ui->actionVideo->isChecked())
+        {
+            ui->actionVideo->setDisabled(false);
+        }
+        ui->actionControl->setDisabled(true);
+        ui->actionSetings->setDisabled(false);
+
         ui->actionVideo->setChecked(false);
         ui->actionControl->setChecked(true);
         ui->actionSetings->setChecked(false);
-
-        ui->actionVideo->setDisabled(false);
-        ui->actionControl->setDisabled(true);
-        ui->actionSetings->setDisabled(false);
 
         break;
 
@@ -504,21 +511,22 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
         ui->textLogInfo->verticalScrollBar()->setValue(
                     ui->textLogInfo->verticalScrollBar()->maximum());
 
+        if (ui->actionVideo->isChecked())
+        {
+            ui->actionVideo->setDisabled(false);
+        }
+        ui->actionControl->setDisabled(false);
+        ui->actionSetings->setDisabled(true);
+
         ui->actionVideo->setChecked(false);
         ui->actionControl->setChecked(false);
         ui->actionSetings->setChecked(true);
-
-        ui->actionVideo->setDisabled(false);
-        ui->actionControl->setDisabled(false);
-        ui->actionSetings->setDisabled(true);
 
         break;
 
     default:
         break;
     }
-
-    ui->actionAdvanceMode->setChecked(false);
 }
 
 void MainWindow::on_connectedGamepadsChanged()
@@ -626,7 +634,7 @@ void MainWindow::on_pwmBox_1_editingFinished()
     ui->verticalSliderPWM_1->blockSignals(false);
     // set pwm here
     pwmOutput[0] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_1->value());
-//    qDebug() << "finished:" << ui->pwmBox_1->value();
+    //    qDebug() << "finished:" << ui->pwmBox_1->value();
 }
 
 void MainWindow::on_verticalSliderPWM_2_valueChanged(int value)
@@ -648,7 +656,7 @@ void MainWindow::on_pwmBox_2_editingFinished()
     ui->verticalSliderPWM_2->blockSignals(false);
     // set pwm here
     pwmOutput[1] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_2->value());
-//    qDebug() << "finished:" << ui->pwmBox_2->value();
+    //    qDebug() << "finished:" << ui->pwmBox_2->value();
 }
 
 void MainWindow::on_verticalSliderPWM_3_valueChanged(int value)
@@ -670,7 +678,7 @@ void MainWindow::on_pwmBox_3_editingFinished()
     ui->verticalSliderPWM_3->blockSignals(false);
     // set pwm here
     pwmOutput[2] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_3->value());
-//    qDebug() << "finished:" << ui->pwmBox_3->value();
+    //    qDebug() << "finished:" << ui->pwmBox_3->value();
 }
 
 void MainWindow::on_verticalSliderPWM_4_valueChanged(int value)
@@ -692,7 +700,7 @@ void MainWindow::on_pwmBox_4_editingFinished()
     ui->verticalSliderPWM_4->blockSignals(false);
     // set pwm here
     pwmOutput[3] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_4->value());
-//    qDebug() << "finished:" << ui->pwmBox_4->value();
+    //    qDebug() << "finished:" << ui->pwmBox_4->value();
 }
 
 void MainWindow::on_verticalSliderPWM_5_valueChanged(int value)
@@ -714,7 +722,7 @@ void MainWindow::on_pwmBox_5_editingFinished()
     ui->verticalSliderPWM_5->blockSignals(false);
     // set pwm here
     pwmOutput[4] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_5->value());
-//    qDebug() << "finished:" << ui->pwmBox_5->value();
+    //    qDebug() << "finished:" << ui->pwmBox_5->value();
 }
 
 void MainWindow::on_verticalSliderPWM_6_valueChanged(int value)
@@ -736,7 +744,7 @@ void MainWindow::on_pwmBox_6_editingFinished()
     ui->verticalSliderPWM_6->blockSignals(false);
     // set pwm here
     pwmOutput[5] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_6->value());
-//    qDebug() << "finished:" << ui->pwmBox_6->value();
+    //    qDebug() << "finished:" << ui->pwmBox_6->value();
 }
 
 void MainWindow::on_verticalSliderPWM_7_valueChanged(int value)
@@ -758,13 +766,13 @@ void MainWindow::on_pwmBox_7_editingFinished()
     ui->verticalSliderPWM_7->blockSignals(false);
     // set pwm here
     pwmOutput[6] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_7->value());
-//    qDebug() << "finished:" << ui->pwmBox_7->value();
+    //    qDebug() << "finished:" << ui->pwmBox_7->value();
 }
 
 void MainWindow::on_verticalSliderPWM_8_valueChanged(int value)
 {
     ui->pwmBox_8->setValue(value);
-//    emit ui->pwmBox_8->editingFinished();
+    //    emit ui->pwmBox_8->editingFinished();
     on_pwmBox_8_editingFinished();
 }
 
@@ -781,7 +789,7 @@ void MainWindow::on_pwmBox_8_editingFinished()
     ui->verticalSliderPWM_8->blockSignals(false);
     // set pwm here
     pwmOutput[7] = static_cast<uint16_t>(1500 + ui->verticalSliderPWM_8->value());
-//    qDebug() << "finished:" << ui->pwmBox_8->value();
+    //    qDebug() << "finished:" << ui->pwmBox_8->value();
 }
 
 void MainWindow::on_checkBoxThrustersTest_stateChanged(int state)
@@ -889,7 +897,7 @@ void MainWindow::on_checkBoxThrustersTest_stateChanged(int state)
         thrustersTestTimer.stop();
 
         AS::as_api_send_rc_channels_override(currentVehicle, 1,
-                pwmOutput[0],
+                                             pwmOutput[0],
                 pwmOutput[1],
                 pwmOutput[2],
                 pwmOutput[3],
@@ -978,45 +986,43 @@ void MainWindow::on_upperControlButton_clicked()
     ui->stackedWidgetMain->setCurrentIndex(1);
 }
 
-void MainWindow::on_actionAdvanceMode_triggered()
+void MainWindow::on_actionAdvanceMode_triggered(bool arg1)
 {
-    QList<QScreen *> m_screens = QGuiApplication::screens();
-    if (m_screens.count() < 2)
+    if (arg1)
     {
-        return;
+        QList<QScreen *> m_screens = QGuiApplication::screens();
+        if (m_screens.count() < 2)
+        {
+            return;
+        }
+
+        QScreen *screen = m_screens[0];
+        setGeometry(screen->availableGeometry());
+        setWindowState(Qt::WindowMaximized);
+
+        screen = m_screens[1];
+        videoWindow->setGeometry(screen->availableGeometry());
+        videoWindow->show();
+        videoWindow->setWindowState(Qt::WindowMaximized);
+
+        emit ui->actionControl->trigger();
+
+        ui->actionVideo->setDisabled(true);
+    }
+    else
+    {
+        videoWindow->close();
     }
 
-    QScreen *screen = m_screens[0];
-    setGeometry(screen->availableGeometry());
-    setWindowState(Qt::WindowMaximized);
-
-    screen = m_screens[1];
-    videoWindow->setGeometry(screen->availableGeometry());
-    videoWindow->show();
-    videoWindow->setWindowState(Qt::WindowMaximized);
-
-    ui->actionVideo->setChecked(false);
-    ui->actionControl->setChecked(false);
-    ui->actionSetings->setChecked(false);
-    ui->actionAdvanceMode->setChecked(true);
-
-    ui->actionVideo->setDisabled(false);
-    ui->actionControl->setDisabled(false);
-    ui->actionSetings->setDisabled(false);
-    ui->actionAdvanceMode->setDisabled(true);
-    ui->actionVideo->setVisible(false);
 }
 
-void MainWindow::on_closeWindow_triggered()
+void MainWindow::on_closeVideoWindow_triggered()
 {
-    if (ui->actionAdvanceMode->isChecked())
-    {
-        ui->actionAdvanceMode->setChecked(false);
+    ui->actionAdvanceMode->setChecked(false);
 
-        emit ui->actionVideo->trigger();
-    }
+    emit ui->actionVideo->trigger();
 
-    ui->actionVideo->setVisible(true);
+    ui->actionVideo->setDisabled(false);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

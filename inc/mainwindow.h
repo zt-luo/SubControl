@@ -133,9 +133,9 @@ private slots:
 
     void on_upperControlButton_clicked();
 
-    void on_actionAdvanceMode_triggered();
+    void on_actionAdvanceMode_triggered(bool arg1);
 
-    void on_closeWindow_triggered();
+    void on_closeVideoWindow_triggered();
 
 private:
     Ui::MainWindow *ui;

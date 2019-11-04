@@ -3070,6 +3070,7 @@ color: rgb(255, 255, 255);</string>
    <addaction name="actionVideo"/>
    <addaction name="actionControl"/>
    <addaction name="actionSetings"/>
+   <addaction name="separator"/>
   </widget>
   <widget class="QToolBar" name="vehicleToolBar">
    <property name="windowTitle">
