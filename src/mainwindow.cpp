@@ -75,7 +75,10 @@ MainWindow::~MainWindow()
 {
     videoWindow->close();
     writeSettings();
+    qDebug() << "~MainWindows";
+    delete _vlcPlayer;
     delete ui;
+    qDebug() << "finish ~MainWindows";
 }
 
 void MainWindow::resizeWindowsManual()
@@ -970,6 +973,7 @@ void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
         }
 
         ui->vedio->show();
+        videoWindow->showVideo(true);
     }
     else
     {
@@ -978,6 +982,7 @@ void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
             _vlcPlayer->stop();
         }
         ui->vedio->hide();
+        videoWindow->showVideo(false);
     }
 }
 
@@ -1013,7 +1018,6 @@ void MainWindow::on_actionAdvanceMode_triggered(bool arg1)
     {
         videoWindow->close();
     }
-
 }
 
 void MainWindow::on_closeVideoWindow_triggered()

@@ -13,8 +13,8 @@ void MainWindow::setupVideo()
     _vlcPlayer = new VlcMediaPlayer(_vlcInstance);
     _vlcPlayer->setVideoWidget(ui->vedio);
     ui->vedio->setMediaPlayer(_vlcPlayer);
-//    _vlcMedia = new VlcMedia("file:///home/ztluo/video.mp4", _vlcInstance);
-    _vlcMedia = new VlcMedia("http://192.168.2.2:2770/vlc.sdp", _vlcInstance);
+    _vlcMedia = new VlcMedia("file:///home/ztluo/video.mp4", _vlcInstance);
+//    _vlcMedia = new VlcMedia("http://192.168.2.2:2770/vlc.sdp", _vlcInstance);
     _vlcPlayer->open(_vlcMedia);
     _vlcPlayer->stop();
     ui->vedio->hide();

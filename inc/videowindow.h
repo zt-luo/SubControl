@@ -3,6 +3,12 @@
 
 #include <QMainWindow>
 
+#include "VLCQtWidgets/WidgetVideo.h"
+#include "VLCQtCore/Common.h"
+#include "VLCQtCore/Media.h"
+#include "VLCQtCore/Instance.h"
+#include "VLCQtCore/MediaPlayer.h"
+
 namespace Ui {
 class VideoWindow;
 }
@@ -18,6 +24,9 @@ class VideoWindow : public QMainWindow
 public:
     explicit VideoWindow(QWidget *parent = nullptr);
     ~VideoWindow();
+
+    void setupVideo(VlcMediaPlayer *_vlcPlayer);
+    void showVideo(bool show);
 
 public slots:
     void on_updateVehicleDataSignal(AS::Vehicle_Data_t *vehicle_data);

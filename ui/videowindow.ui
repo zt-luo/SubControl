@@ -276,12 +276,12 @@ color: rgb(255, 255, 255);</string>
     </layout>
    </widget>
    <zorder>picture</zorder>
-   <zorder>vedio</zorder>
    <zorder>labelADI</zorder>
    <zorder>labelCompass</zorder>
    <zorder>vedioPanel</zorder>
    <zorder>qCompass</zorder>
    <zorder>qADI</zorder>
+   <zorder>vedio</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

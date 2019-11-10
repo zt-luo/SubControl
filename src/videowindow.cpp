@@ -19,6 +19,23 @@ VideoWindow::~VideoWindow()
     delete ui;
 }
 
+void VideoWindow::setupVideo(VlcMediaPlayer *_vlcPlayer)
+{
+    ui->vedio->setMediaPlayer(_vlcPlayer);
+}
+
+void VideoWindow::showVideo(bool show)
+{
+    if (show)
+    {
+        ui->vedio->show();
+    }
+    else
+    {
+        ui->vedio->hide();
+    }
+}
+
 void VideoWindow::resizeWindowsManual()
 {
     int m_width = 0;
@@ -72,5 +89,4 @@ void  VideoWindow::on_updateVehicleDataSignal(AS::Vehicle_Data_t *vehicle_data)
 {
     assert(vehicle_data != nullptr);
     updateAdiCompass(vehicle_data);
-
 }
