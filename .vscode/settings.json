@@ -1,6 +1,8 @@
 {
     "cmake.configureOnOpen": false,
     "files.associations": {
-        "qmainwindow": "cpp"
+        "qmainwindow": "cpp",
+        "qquickitem": "cpp",
+        "qquickwidget": "cpp"
     }
 }

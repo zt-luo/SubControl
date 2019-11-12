@@ -20,35 +20,6 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="VlcWidgetVideo" name="video" native="true">
-    <property name="geometry">
-     <rect>
-      <x>9</x>
-      <y>9</y>
-      <width>800</width>
-      <height>600</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="labelADI">
-    <property name="geometry">
-     <rect>
-      <x>840</x>
-      <y>9</y>
-      <width>161</width>
-      <height>161</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(0, 0, 0);</string>
-    </property>
-    <property name="text">
-     <string>ADI</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QCompass" name="qCompass" native="true">
     <property name="geometry">
      <rect>
@@ -60,25 +31,6 @@
     </property>
     <property name="styleSheet">
      <string notr="true">background-color:transparent</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="labelCompass">
-    <property name="geometry">
-     <rect>
-      <x>1010</x>
-      <y>9</y>
-      <width>161</width>
-      <height>161</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(0, 0, 0);</string>
-    </property>
-    <property name="text">
-     <string>Compass</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QADI" name="qADI" native="true">
@@ -163,8 +115,8 @@
          <item>
           <widget class="QLabel" name="labelYaw">
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>Y:</string>
@@ -174,8 +126,8 @@ color: rgb(255, 255, 255);</string>
          <item>
           <widget class="QLabel" name="labelYawValue">
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>0</string>
@@ -192,8 +144,8 @@ color: rgb(255, 255, 255);</string>
          <item>
           <widget class="QLabel" name="labelPitch">
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>P:</string>
@@ -203,8 +155,8 @@ color: rgb(255, 255, 255);</string>
          <item>
           <widget class="QLabel" name="labelPitchValue">
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>0</string>
@@ -221,8 +173,8 @@ color: rgb(255, 255, 255);</string>
          <item>
           <widget class="QLabel" name="labelRoll">
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>R:</string>
@@ -232,8 +184,8 @@ color: rgb(255, 255, 255);</string>
          <item>
           <widget class="QLabel" name="labelRollValue">
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>0</string>
@@ -250,8 +202,8 @@ color: rgb(255, 255, 255);</string>
          <item>
           <widget class="QLabel" name="labelDepth">
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>D:</string>
@@ -261,8 +213,8 @@ color: rgb(255, 255, 255);</string>
          <item>
           <widget class="QLabel" name="labelDepthValue">
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+            <string notr="true">color: rgb(0, 0, 0);
+background-color: rgba(255, 255, 255, 0);</string>
            </property>
            <property name="text">
             <string>0</string>
@@ -275,13 +227,24 @@ color: rgb(255, 255, 255);</string>
      </item>
     </layout>
    </widget>
+   <widget class="QQuickWidget" name="quickWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>811</width>
+      <height>641</height>
+     </rect>
+    </property>
+    <property name="resizeMode">
+     <enum>QQuickWidget::SizeRootObjectToView</enum>
+    </property>
+   </widget>
    <zorder>picture</zorder>
-   <zorder>labelADI</zorder>
-   <zorder>labelCompass</zorder>
    <zorder>videoPanel</zorder>
    <zorder>qCompass</zorder>
    <zorder>qADI</zorder>
-   <zorder>video</zorder>
+   <zorder>quickWidget</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -297,6 +260,11 @@ color: rgb(255, 255, 255);</string>
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QQuickWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QtQuickWidgets/QQuickWidget</header>
+  </customwidget>
+  <customwidget>
    <class>QADI</class>
    <extends>QWidget</extends>
    <header>inc/qFlightInstruments.h</header>
@@ -306,12 +274,6 @@ color: rgb(255, 255, 255);</string>
    <class>QCompass</class>
    <extends>QWidget</extends>
    <header>inc/qFlightInstruments.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>VlcWidgetVideo</class>
-   <extends>QWidget</extends>
-   <header>VLCQtWidgets/WidgetVideo.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

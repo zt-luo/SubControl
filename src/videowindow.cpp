@@ -19,20 +19,15 @@ VideoWindow::~VideoWindow()
     delete ui;
 }
 
-void VideoWindow::setupVideo(VlcMediaPlayer *_vlcPlayer)
-{
-    ui->video->setMediaPlayer(_vlcPlayer);
-}
-
 void VideoWindow::showVideo(bool show)
 {
     if (show)
     {
-        ui->video->show();
+        ui->quickWidget->show();
     }
     else
     {
-        ui->video->hide();
+        ui->quickWidget->hide();
     }
 }
 
@@ -41,13 +36,11 @@ void VideoWindow::resizeWindowsManual()
     int m_width = 0;
     m_width = ui->centralwidget->width();
 
-    ui->video->setGeometry(0, 0 , m_width, ui->centralwidget->height());
+    ui->quickWidget->setGeometry(0, 0 , m_width, ui->centralwidget->height());
     ui->picture->setGeometry(0, 0 , m_width, ui->centralwidget->height());
 
     ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
-    ui->labelCompass->setGeometry(m_width - 160, 0, 160, 160);
     ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
-    ui->labelADI->setGeometry(m_width - 320, 0, 160, 160);
 
     ui->videoPanel->setGeometry(m_width - 320, 160, 320, 20);
 }

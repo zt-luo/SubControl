@@ -19,7 +19,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("Looking for Qt...")
 # Qt modules (https://doc.qt.io/qt-5/qtmodules.html) you're using in your application
-find_package(Qt5 REQUIRED Widgets Core Gui Charts Gamepad)
+find_package(Qt5 REQUIRED Widgets Core Gui Charts Gamepad QuickWidgets)
 if (${Qt5_FOUND})
     message("Found Qt " ${Qt5_VERSION})
 else()
@@ -32,6 +32,7 @@ link_libraries(
     Qt5::Gui
     Qt5::Charts
     Qt5::Gamepad
+    Qt5::QuickWidgets
     )
 
 qt5_wrap_ui(ui_list 
@@ -53,17 +54,17 @@ qt5_add_resources(qrc_list
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GLIB REQUIRED glib-2.0)
 pkg_search_module(LIBSERIALPORT REQUIRED libserialport)
-pkg_search_module(LIBVLC_CORE REQUIRED libVLCQtCore)
-pkg_search_module(LIBVLC_WIDGETS REQUIRED libVLCQtWidgets)
+pkg_search_module(GST REQUIRED gstreamer-1.0)
+pkg_search_module(GST_VIDEO REQUIRED gstreamer-video-1.0)
 
 include_directories(
     ${GLIB_INCLUDE_DIRS} ${LIBSERIALPORT_INCLUDE_DIRS} 
-    ${LIBVL_CCORE_INCLUDE_DIRS} ${LIBVLC_WIDGETS_INCLUDE_DIRS} 
+    ${GST_INCLUDE_DIRS} ${GST_VIDEO_INCLUDE_DIRS} 
     )
 
 link_libraries(
     ${GLIB_LDFLAGS} ${LIBSERIALPORT_LDFLAGS} 
-    ${LIBVLC_CORE_LDFLAGS} ${LIBVLC_WIDGETS_LDFLAGS} 
+    ${GST_LDFLAGS} ${GST_VIDEO_LDFLAGS} 
     )
 
 ADD_SUBDIRECTORY(ardusub_api)

@@ -6,7 +6,7 @@
 
 QT       += core gui charts gamepad
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets quickwidgets
 
 TARGET = SubControl
 TEMPLATE = app

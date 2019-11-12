@@ -17,7 +17,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_depthChart(new DepthChart),
     m_depthScene(new QGraphicsScene),
     m_joystick(nullptr),
-    _vlcPlayer(nullptr),
     currentVehicle(0),
     videoOk(false),
     vehicle_data(new AS::Vehicle_Data_t)
@@ -75,10 +74,7 @@ MainWindow::~MainWindow()
 {
     videoWindow->close();
     writeSettings();
-    qDebug() << "~MainWindows";
-    delete _vlcPlayer;
     delete ui;
-    qDebug() << "finish ~MainWindows";
 }
 
 void MainWindow::resizeWindowsManual()
@@ -88,13 +84,11 @@ void MainWindow::resizeWindowsManual()
 
     setChartsSize();
 
-    ui->video->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
+    ui->quickWidget->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
     ui->picture->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
 
     ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
-    ui->labelCompass->setGeometry(m_width - 160, 0, 160, 160);
     ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
-    ui->labelADI->setGeometry(m_width - 320, 0, 160, 160);
 
     ui->videoPanel->setGeometry(m_width - 320, 160, 320, 20);
 }
@@ -261,11 +255,16 @@ void MainWindow::readSettings()
     settings.endGroup();
 
     settings.beginGroup("General/Video");
-    ui->checkBoxVideoLink->setCheckState(static_cast<Qt::CheckState>(settings.value("enable", 2).toInt()));
-    ui->lineEditVideoLink->setText(settings.value("link", "http://192.168.2.2:2770/vlc.sdp").toString());
-    ui->checkBoxADI->setCheckState(static_cast<Qt::CheckState>(settings.value("ADI", 2).toInt()));
-    ui->checkBoxCompass->setCheckState(static_cast<Qt::CheckState>(settings.value("compass", 2).toInt()));
-    ui->checkBoxVideoPanel->setCheckState(static_cast<Qt::CheckState>(settings.value("panel", 2).toInt()));
+    ui->checkBoxVideoLink->setCheckState(
+        static_cast<Qt::CheckState>(settings.value("enable", 2).toInt()));
+    ui->lineEditVideoLink->setText(
+        settings.value("link", "http://192.168.2.2:2770/vlc.sdp").toString());
+    ui->checkBoxADI->setCheckState(
+        static_cast<Qt::CheckState>(settings.value("ADI", 2).toInt()));
+    ui->checkBoxCompass->setCheckState(
+        static_cast<Qt::CheckState>(settings.value("compass", 2).toInt()));
+    ui->checkBoxVideoPanel->setCheckState(
+        static_cast<Qt::CheckState>(settings.value("panel", 2).toInt()));
     settings.endGroup();
 }
 
@@ -281,13 +280,11 @@ void MainWindow::on_actionVideo_triggered()
 
     int m_width = ui->stackedWidgetVideo->width();
     int m_height = ui->stackedWidgetVideo->height();
-    ui->video->setGeometry(0, 0 , m_width, m_height);
+    ui->quickWidget->setGeometry(0, 0 , m_width, m_height);
     ui->picture->setGeometry(0, 0 , m_width, m_height);
 
     ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
     ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
-    ui->labelCompass->setGeometry(m_width - 160, 0, 160, 160);
-    ui->labelADI->setGeometry(m_width - 320, 0, 160, 160);
 
     ui->videoPanel->setGeometry(m_width - 320, 160, 320, 30);
 }
@@ -935,12 +932,10 @@ void MainWindow::on_checkBoxADI_stateChanged(int arg1)
     if (arg1)
     {
         ui->qADI->show();
-        ui->labelADI->show();
     }
     else
     {
         ui->qADI->hide();
-        ui->labelADI->hide();
     }
 }
 
@@ -949,12 +944,10 @@ void MainWindow::on_checkBoxCompass_stateChanged(int arg1)
     if (arg1)
     {
         ui->qCompass->show();
-        ui->labelCompass->show();
     }
     else
     {
         ui->qCompass->hide();
-        ui->labelCompass->hide();
     }
 }
 
@@ -967,21 +960,12 @@ void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
 
     if (arg1)
     {
-        if (_vlcPlayer->state() == Vlc::Stopped)
-        {
-            _vlcPlayer->play();
-        }
-
-        ui->video->show();
+        ui->quickWidget->show();
         videoWindow->showVideo(true);
     }
     else
     {
-        if (_vlcPlayer->state() != Vlc::Stopped)
-        {
-            _vlcPlayer->stop();
-        }
-        ui->video->hide();
+        ui->quickWidget->hide();
         videoWindow->showVideo(false);
     }
 }

@@ -18,5 +18,6 @@
         <file>assets/icon/video2.svg</file>
         <file>assets/picture/background.jpg</file>
         <file>assets/icon/monitor.svg</file>
+        <file>assets/video.qml</file>
     </qresource>
 </RCC>

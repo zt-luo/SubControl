@@ -9,12 +9,9 @@
 #include <QGamepadManager>
 #include <QtGamepad/QGamepad>
 #include <QSettings>
+#include <QQuickWidget>
 
-#include "VLCQtWidgets/WidgetVideo.h"
-#include "VLCQtCore/Common.h"
-#include "VLCQtCore/Media.h"
-#include "VLCQtCore/Instance.h"
-#include "VLCQtCore/MediaPlayer.h"
+#include <gst/gst.h>
 
 #include "chart.h"
 #include "videowindow.h"
@@ -159,10 +156,6 @@ private:
     QGamepadManager *joystickManager;
     QGamepad *m_joystick;
 
-    VlcInstance *_vlcInstance;
-    VlcMedia *_vlcMedia;
-    VlcMediaPlayer *_vlcPlayer;
-
     QTimer vehicleDataUpdateTimer;
     QTimer closeControlTimer;
     QTimer statusTexTimer;
@@ -186,6 +179,9 @@ private:
     uint8_t currentVehicle;
     bool videoOk;
 
+    GstElement *pipeline1;
+    GstElement *pipeline2;
+
     AS::Vehicle_Data_t *vehicle_data;
 
     uint16_t pwmOutput[8] = {1500};
@@ -201,6 +197,7 @@ private:
 
     void setupTimer();
 
+    void setupGstPipeline(GstElement *pipeline, QQuickWidget *quickWidget);
     void setupVideo();
 
     void setupJoystick();
