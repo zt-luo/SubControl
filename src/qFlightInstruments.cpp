@@ -355,8 +355,8 @@ void QCompass::paintEvent(QPaintEvent *)
 
     // draw yaw lines
     {
-        int     nyawLines = 36;
-        qreal   rotAng = 360.0 / nyawLines;
+        int     yawLines = 36;
+        qreal   rotAng = 360.0 / yawLines;
         int     yawLineLeng = m_size/25;
         double  fx1, fy1, fx2, fy2;
         int     fontSize = 8;
@@ -365,7 +365,7 @@ void QCompass::paintEvent(QPaintEvent *)
         blackPen.setWidth(1);
         painter.setPen(blackPen);
 
-        for(int i=0; i<nyawLines; i++) {
+        for(int i=0; i<yawLines; i++) {
 
             if( i == 0 ) {
                 s = "N";

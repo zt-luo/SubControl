@@ -88,7 +88,7 @@ void MainWindow::resizeWindowsManual()
 
     setChartsSize();
 
-    ui->vedio->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
+    ui->video->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
     ui->picture->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
 
     ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
@@ -96,7 +96,7 @@ void MainWindow::resizeWindowsManual()
     ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
     ui->labelADI->setGeometry(m_width - 320, 0, 160, 160);
 
-    ui->vedioPanel->setGeometry(m_width - 320, 160, 320, 20);
+    ui->videoPanel->setGeometry(m_width - 320, 160, 320, 20);
 }
 
 void MainWindow::resizeEvent(QResizeEvent* event)
@@ -126,9 +126,9 @@ void MainWindow::setChartsSize()
 
 void MainWindow::setupToolBars()
 {
-    vehicleLable = new QLabel;
-    vehicleLable->setText("Vehicle: ");
-    ui->vehicleToolBar->addWidget(vehicleLable);
+    vehicleLabel = new QLabel;
+    vehicleLabel->setText("Vehicle: ");
+    ui->vehicleToolBar->addWidget(vehicleLabel);
 
     vehicleComboBox = new QComboBox;
     vehicleComboBox->addItem("/");
@@ -229,7 +229,7 @@ void MainWindow::setupConfigView()
 
     ui->listWidget->setCurrentRow(0);
 
-    // switch to vedio view
+    // switch to video view
     ui->stackedWidgetMain->setCurrentIndex(1);
     ui->stackedWidgetMain->setCurrentIndex(0);
 }
@@ -248,7 +248,7 @@ void MainWindow::writeSettings()
     settings.setValue("link", ui->lineEditVideoLink->text());
     settings.setValue("ADI", ui->checkBoxADI->checkState());
     settings.setValue("compass", ui->checkBoxCompass->checkState());
-    settings.setValue("panle", ui->checkBoxVedioPanle->checkState());
+    settings.setValue("panel", ui->checkBoxVideoPanel->checkState());
     settings.endGroup();
 }
 
@@ -265,7 +265,7 @@ void MainWindow::readSettings()
     ui->lineEditVideoLink->setText(settings.value("link", "http://192.168.2.2:2770/vlc.sdp").toString());
     ui->checkBoxADI->setCheckState(static_cast<Qt::CheckState>(settings.value("ADI", 2).toInt()));
     ui->checkBoxCompass->setCheckState(static_cast<Qt::CheckState>(settings.value("compass", 2).toInt()));
-    ui->checkBoxVedioPanle->setCheckState(static_cast<Qt::CheckState>(settings.value("panle", 2).toInt()));
+    ui->checkBoxVideoPanel->setCheckState(static_cast<Qt::CheckState>(settings.value("panel", 2).toInt()));
     settings.endGroup();
 }
 
@@ -281,7 +281,7 @@ void MainWindow::on_actionVideo_triggered()
 
     int m_width = ui->stackedWidgetVideo->width();
     int m_height = ui->stackedWidgetVideo->height();
-    ui->vedio->setGeometry(0, 0 , m_width, m_height);
+    ui->video->setGeometry(0, 0 , m_width, m_height);
     ui->picture->setGeometry(0, 0 , m_width, m_height);
 
     ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
@@ -289,7 +289,7 @@ void MainWindow::on_actionVideo_triggered()
     ui->labelCompass->setGeometry(m_width - 160, 0, 160, 160);
     ui->labelADI->setGeometry(m_width - 320, 0, 160, 160);
 
-    ui->vedioPanel->setGeometry(m_width - 320, 160, 320, 30);
+    ui->videoPanel->setGeometry(m_width - 320, 160, 320, 30);
 }
 
 void MainWindow::on_actionControl_triggered()
@@ -804,8 +804,8 @@ void MainWindow::on_checkBoxThrustersTest_stateChanged(int state)
         if (armCheckBox->checkState() == Qt::Unchecked)
         {
             ui->checkBoxThrustersTest->setCheckState(Qt::Unchecked);
-            QMessageBox::critical(this, "Arm vehilce first",
-                                  "Vehilce is disarmed, please ARM vehilce first.",
+            QMessageBox::critical(this, "Arm vehicle first",
+                                  "Vehicle is disarmed, please ARM vehicle first.",
                                   QMessageBox::Ok, QMessageBox::Ok);
             break;
         }
@@ -918,15 +918,15 @@ void MainWindow::on_checkBoxThrustersTest_stateChanged(int state)
     }
 }
 
-void MainWindow::on_checkBoxVedioPanle_stateChanged(int arg1)
+void MainWindow::on_checkBoxVideoPanel_stateChanged(int arg1)
 {
     if (arg1)
     {
-        ui->vedioPanel->show();
+        ui->videoPanel->show();
     }
     else
     {
-        ui->vedioPanel->hide();
+        ui->videoPanel->hide();
     }
 }
 
@@ -972,7 +972,7 @@ void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
             _vlcPlayer->play();
         }
 
-        ui->vedio->show();
+        ui->video->show();
         videoWindow->showVideo(true);
     }
     else
@@ -981,7 +981,7 @@ void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
         {
             _vlcPlayer->stop();
         }
-        ui->vedio->hide();
+        ui->video->hide();
         videoWindow->showVideo(false);
     }
 }

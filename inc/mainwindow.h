@@ -123,7 +123,7 @@ private slots:
 
     void on_checkBoxThrustersTest_stateChanged(int state);
 
-    void on_checkBoxVedioPanle_stateChanged(int arg1);
+    void on_checkBoxVideoPanel_stateChanged(int arg1);
 
     void on_checkBoxADI_stateChanged(int arg1);
 
@@ -150,7 +150,7 @@ private:
     DepthChart *m_depthChart;
     QGraphicsScene *m_depthScene;
 
-    QLabel *vehicleLable;
+    QLabel *vehicleLabel;
     QComboBox *vehicleComboBox;
     QCheckBox *armCheckBox;
     QLabel *modeLable;

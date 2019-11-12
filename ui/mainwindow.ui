@@ -32,7 +32,7 @@
          <number>3</number>
         </property>
         <widget class="VlcWidgetVideo" name="stackedWidgetVideo">
-         <widget class="VlcWidgetVideo" name="vedio" native="true">
+         <widget class="VlcWidgetVideo" name="video" native="true">
           <property name="geometry">
            <rect>
             <x>9</x>
@@ -68,7 +68,7 @@
            <string notr="true"/>
           </property>
          </widget>
-         <widget class="QFrame" name="vedioPanel">
+         <widget class="QFrame" name="videoPanel">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -290,10 +290,10 @@ color: rgb(255, 255, 255);</string>
          <zorder>picture</zorder>
          <zorder>labelCompass</zorder>
          <zorder>labelADI</zorder>
-         <zorder>vedio</zorder>
+         <zorder>video</zorder>
          <zorder>qCompass</zorder>
          <zorder>qADI</zorder>
-         <zorder>vedioPanel</zorder>
+         <zorder>videoPanel</zorder>
         </widget>
         <widget class="QWidget" name="stackedWidgetControl">
          <layout class="QGridLayout" name="gridLayout_2">
@@ -328,7 +328,7 @@ color: rgb(255, 255, 255);</string>
               <property name="checkable">
                <bool>false</bool>
               </property>
-              <widget class="QWidget" name="layoutWidget">
+              <widget class="QWidget" name="layoutWidget1">
                <property name="geometry">
                 <rect>
                  <x>13</x>
@@ -412,7 +412,7 @@ color: rgb(255, 255, 255);</string>
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="layoutWidget">
+              <widget class="QWidget" name="layoutWidget2">
                <property name="geometry">
                 <rect>
                  <x>12</x>
@@ -1951,7 +1951,7 @@ color: rgb(255, 255, 255);</string>
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
-             <widget class="QCheckBox" name="checkBoxVedioPanle">
+             <widget class="QCheckBox" name="checkBoxVideoPanel">
               <property name="geometry">
                <rect>
                 <x>20</x>
@@ -1967,7 +1967,7 @@ color: rgb(255, 255, 255);</string>
                <bool>true</bool>
               </property>
              </widget>
-             <widget class="QWidget" name="layoutWidget">
+             <widget class="QWidget" name="layoutWidget3">
               <property name="geometry">
                <rect>
                 <x>20</x>
@@ -2056,7 +2056,7 @@ color: rgb(255, 255, 255);</string>
                <string>Joystick</string>
               </property>
              </widget>
-             <widget class="QWidget" name="layoutWidget">
+             <widget class="QWidget" name="layoutWidget4">
               <property name="geometry">
                <rect>
                 <x>20</x>
@@ -2234,7 +2234,7 @@ color: rgb(255, 255, 255);</string>
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
-             <widget class="QWidget" name="layoutWidget">
+             <widget class="QWidget" name="layoutWidget5">
               <property name="geometry">
                <rect>
                 <x>20</x>

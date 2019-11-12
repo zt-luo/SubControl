@@ -9,7 +9,7 @@ VideoWindow::VideoWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QPixmap pix(":/assets/picture/shuimu-004.jpg");
+    QPixmap pix(":/assets/picture/background.jpg");
     QPixmap dest=pix.scaled(ui->picture->size());
     ui->picture->setPixmap(pix);
 }
@@ -21,18 +21,18 @@ VideoWindow::~VideoWindow()
 
 void VideoWindow::setupVideo(VlcMediaPlayer *_vlcPlayer)
 {
-    ui->vedio->setMediaPlayer(_vlcPlayer);
+    ui->video->setMediaPlayer(_vlcPlayer);
 }
 
 void VideoWindow::showVideo(bool show)
 {
     if (show)
     {
-        ui->vedio->show();
+        ui->video->show();
     }
     else
     {
-        ui->vedio->hide();
+        ui->video->hide();
     }
 }
 
@@ -41,7 +41,7 @@ void VideoWindow::resizeWindowsManual()
     int m_width = 0;
     m_width = ui->centralwidget->width();
 
-    ui->vedio->setGeometry(0, 0 , m_width, ui->centralwidget->height());
+    ui->video->setGeometry(0, 0 , m_width, ui->centralwidget->height());
     ui->picture->setGeometry(0, 0 , m_width, ui->centralwidget->height());
 
     ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
@@ -49,7 +49,7 @@ void VideoWindow::resizeWindowsManual()
     ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
     ui->labelADI->setGeometry(m_width - 320, 0, 160, 160);
 
-    ui->vedioPanel->setGeometry(m_width - 320, 160, 320, 20);
+    ui->videoPanel->setGeometry(m_width - 320, 160, 320, 20);
 }
 
 void VideoWindow::resizeEvent(QResizeEvent* event)

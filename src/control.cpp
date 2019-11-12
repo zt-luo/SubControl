@@ -16,7 +16,7 @@ void MainWindow::closeControl()
         return;
     }
 
-    // controlor output
+    // controller output
     int depth_pwm_out = 0,
             yaw_pwm_out = 0, pitch_pwm_out = 0, roll_pwm_out = 0,
             x_pwm_out  = 0, y_pwm_out = 0;
@@ -44,7 +44,7 @@ void MainWindow::closeControl()
     pitch_now = vehicle_data->pitch * degreePerRad;  // degree
     roll_now = vehicle_data->roll * degreePerRad;    // degree
 
-    // depth controlor start
+    // depth controller start
     if (!ui->depthPidCheckBox->checkState())
     {
         depth_pwm_out = 0;
@@ -131,9 +131,9 @@ void MainWindow::closeControl()
         ui->textLogInfo->append(out_str.sprintf("err:%f, P:%f, I:%f, D:%f, out:%d.",
                                                 depth_err, P_term, I_term, D_term, depth_pwm_out));
 
-    } // depth controlor end
+    } // depth controller end
 
-    // yaw controlor start
+    // yaw controller start
     if (!ui->yawPidCheckBox->checkState())
     {
         yaw_pwm_out = 0;
@@ -219,9 +219,9 @@ void MainWindow::closeControl()
         QString out_str;
         ui->textLogInfo->append(out_str.sprintf("err:%f, P:%f, I:%f, D:%f, vel:%f, out:%d.",
                                                 yaw_err, P_term, I_term, D_term, yaw_vel,yaw_pwm_out));
-    } // yaw controlor end
+    } // yaw controller end
 
-    // pitch controlor start
+    // pitch controller start
     if (!ui->pitchPidCheckBox->checkState())
     {
         pitch_pwm_out = 0;
@@ -304,9 +304,9 @@ void MainWindow::closeControl()
             pitch_pwm_out = pwm_limit;
         }
 
-    } // pitch controlor end
+    } // pitch controller end
 
-    // roll controlor start
+    // roll controller start
     if (!ui->rollPidCheckBox->checkState())
     {
         roll_pwm_out = 0;
@@ -388,7 +388,7 @@ void MainWindow::closeControl()
         {
             roll_pwm_out = pwm_limit;
         }
-    } // roll controlor end
+    } // roll controller end
 
     // x movement start
     {
