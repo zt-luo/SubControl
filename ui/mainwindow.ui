@@ -29,7 +29,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidgetMain">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="stackedWidgetVideo">
          <widget class="QCompass" name="qCompass" native="true">
@@ -57,174 +57,6 @@
           <property name="styleSheet">
            <string notr="true"/>
           </property>
-         </widget>
-         <widget class="QFrame" name="videoPanel">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>840</x>
-            <y>175</y>
-            <width>331</width>
-            <height>21</height>
-           </rect>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_43">
-           <property name="spacing">
-            <number>0</number>
-           </property>
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_42" stretch="1,1,1,1">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="sizeConstraint">
-              <enum>QLayout::SetDefaultConstraint</enum>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_35" stretch="1,3">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="labelYaw">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>Y:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="labelYawValue">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_39" stretch="1,3">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="labelPitch">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>P:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="labelPitchValue">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_40" stretch="1,3">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="labelRoll">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>R:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="labelRollValue">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_41" stretch="1,3">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="labelDepth">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>D:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="labelDepthValue">
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(0, 0, 0);
-background-color: rgba(255, 255, 255, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </item>
-          </layout>
          </widget>
          <widget class="QLabel" name="picture">
           <property name="geometry">
@@ -256,7 +88,6 @@ background-color: rgba(255, 255, 255, 0);</string>
          <zorder>picture</zorder>
          <zorder>qCompass</zorder>
          <zorder>qADI</zorder>
-         <zorder>videoPanel</zorder>
         </widget>
         <widget class="QWidget" name="stackedWidgetControl">
          <layout class="QGridLayout" name="gridLayout_2">
@@ -1914,29 +1745,13 @@ background-color: rgba(255, 255, 255, 0);</string>
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
-             <widget class="QCheckBox" name="checkBoxVideoPanel">
-              <property name="geometry">
-               <rect>
-                <x>20</x>
-                <y>110</y>
-                <width>131</width>
-                <height>21</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Infomation panle</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
              <widget class="QWidget" name="layoutWidget3">
               <property name="geometry">
                <rect>
                 <x>20</x>
                 <y>60</y>
-                <width>401</width>
-                <height>32</height>
+                <width>281</width>
+                <height>30</height>
                </rect>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_38">
@@ -3034,6 +2849,7 @@ background-color: rgba(255, 255, 255, 0);</string>
    <addaction name="actionControl"/>
    <addaction name="actionSetings"/>
    <addaction name="separator"/>
+   <addaction name="actionAdvanceMode"/>
   </widget>
   <widget class="QToolBar" name="vehicleToolBar">
    <property name="windowTitle">
@@ -3054,7 +2870,24 @@ background-color: rgba(255, 255, 255, 0);</string>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionAdvanceMode"/>
+   <addaction name="separator"/>
+  </widget>
+  <widget class="QToolBar" name="statusToolBar">
+   <property name="windowTitle">
+    <string>Status</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
    <addaction name="separator"/>
   </widget>
   <action name="actionDisarm">

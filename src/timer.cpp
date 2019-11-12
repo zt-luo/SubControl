@@ -233,10 +233,10 @@ void MainWindow::updateAdiCompass()
     ui->qCompass->setYaw(yaw);
     ui->qCompass->setAlt(depth);
 
-    ui->labelRollValue->setNum(round(roll * 1000) / 1000);
-    ui->labelPitchValue->setNum(round(pitch * 1000) / 1000);
-    ui->labelYawValue->setNum(round(yaw * 1000) / 1000);
-    ui->labelDepthValue->setNum(round(depth * 1000) / 1000);
+    rollLabelValue->setNum(round(roll * 100) / 100);
+    pitchLabelValue->setNum(round(pitch * 100) / 100);
+    yawLabelValue->setNum(round(yaw * 100) / 100);
+    depthLabelValue->setNum(round(depth * 100) / 100);
 }
 
 void MainWindow::updateNamedValue()

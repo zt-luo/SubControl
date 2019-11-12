@@ -6,20 +6,19 @@
 
 #include <iostream>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    videoWindow(new VideoWindow(this)),
-    m_yawRollChart(new YawRollChart),
-    m_yawRollScene(new QGraphicsScene),
-    m_pitchChart(new PitchChart),
-    m_pitchScene(new QGraphicsScene),
-    m_depthChart(new DepthChart),
-    m_depthScene(new QGraphicsScene),
-    m_joystick(nullptr),
-    currentVehicle(0),
-    videoOk(false),
-    vehicle_data(new AS::Vehicle_Data_t)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
+                                          ui(new Ui::MainWindow),
+                                          videoWindow(new VideoWindow(this)),
+                                          m_yawRollChart(new YawRollChart),
+                                          m_yawRollScene(new QGraphicsScene),
+                                          m_pitchChart(new PitchChart),
+                                          m_pitchScene(new QGraphicsScene),
+                                          m_depthChart(new DepthChart),
+                                          m_depthScene(new QGraphicsScene),
+                                          m_joystick(nullptr),
+                                          currentVehicle(0),
+                                          videoOk(false),
+                                          vehicle_data(new AS::Vehicle_Data_t)
 {
     ui->setupUi(this);
     setWindowIcon(QIcon(":/assets/icon/main_icon.svg"));
@@ -69,7 +68,6 @@ MainWindow::MainWindow(QWidget *parent) :
             videoWindow, &VideoWindow::on_updateVehicleDataSignal);
 }
 
-
 MainWindow::~MainWindow()
 {
     videoWindow->close();
@@ -84,16 +82,14 @@ void MainWindow::resizeWindowsManual()
 
     setChartsSize();
 
-    ui->quickWidget->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
-    ui->picture->setGeometry(0, 0 , m_width, ui->stackedWidgetVideo->height());
+    ui->quickWidget->setGeometry(0, 0, m_width, ui->stackedWidgetVideo->height());
+    ui->picture->setGeometry(0, 0, m_width, ui->stackedWidgetVideo->height());
 
     ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
     ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
-
-    ui->videoPanel->setGeometry(m_width - 320, 160, 320, 20);
 }
 
-void MainWindow::resizeEvent(QResizeEvent* event)
+void MainWindow::resizeEvent(QResizeEvent *event)
 {
     resizeWindowsManual();
 
@@ -131,9 +127,9 @@ void MainWindow::setupToolBars()
     vehicleComboBox->model()->setData(index, v, Qt::UserRole - 1);
     vehicleComboBox->setFixedWidth(40);
     ui->vehicleToolBar->addWidget(vehicleComboBox);
-    QObject::connect (vehicleComboBox,
-                      static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
-                      this, &MainWindow::on_vehicleComboBox_currentIndexChanged);
+    QObject::connect(vehicleComboBox,
+                     static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged),
+                     this, &MainWindow::on_vehicleComboBox_currentIndexChanged);
 
     QList<QAction *> actionListDisarm;
     actionListDisarm.append(ui->actionDisarm);
@@ -171,19 +167,43 @@ void MainWindow::setupToolBars()
     ui->actionDisarm->setDisabled(true);
     armCheckBox->setDisabled(true);
     modeComboBox->setDisabled(true);
+
+    // status toolbar
+    yawLabel = new QLabel("Yaw: ");
+    yawLabelValue = new QLabel("0.00");
+    pitchLabel = new QLabel("Pitch: ");
+    pitchLabelValue = new QLabel("0.00");
+    rollLabel = new QLabel("Roll: ");
+    rollLabelValue = new QLabel("0.00");
+    depthLabel = new QLabel("Depth: ");
+    depthLabelValue = new QLabel("0.00");
+
+    yawLabelValue->setFixedWidth(50);
+    pitchLabelValue->setFixedWidth(50);
+    rollLabelValue->setFixedWidth(50);
+    depthLabelValue->setFixedWidth(50);
+
+    ui->statusToolBar->addWidget(yawLabel);
+    ui->statusToolBar->addWidget(yawLabelValue);
+    ui->statusToolBar->addWidget(pitchLabel);
+    ui->statusToolBar->addWidget(pitchLabelValue);
+    ui->statusToolBar->addWidget(rollLabel);
+    ui->statusToolBar->addWidget(rollLabelValue);
+    ui->statusToolBar->addWidget(depthLabel);
+    ui->statusToolBar->addWidget(depthLabelValue);
 }
 
 void MainWindow::stringToHtml(QString &str, QColor _color)
 {
     // html filter
-    str.replace("&","&amp;");
-    str.replace(">","&gt;");
-    str.replace("<","&lt;");
-    str.replace("\"","&quot;");
-    str.replace("\'","&#39;");
-    str.replace(" ","&nbsp;");
-    str.replace("\n","<br>");
-    str.replace("\r","<br>");
+    str.replace("&", "&amp;");
+    str.replace(">", "&gt;");
+    str.replace("<", "&lt;");
+    str.replace("\"", "&quot;");
+    str.replace("\'", "&#39;");
+    str.replace(" ", "&nbsp;");
+    str.replace("\n", "<br>");
+    str.replace("\r", "<br>");
 
     QByteArray array;
     array.append(static_cast<char>(_color.red()));
@@ -242,7 +262,6 @@ void MainWindow::writeSettings()
     settings.setValue("link", ui->lineEditVideoLink->text());
     settings.setValue("ADI", ui->checkBoxADI->checkState());
     settings.setValue("compass", ui->checkBoxCompass->checkState());
-    settings.setValue("panel", ui->checkBoxVideoPanel->checkState());
     settings.endGroup();
 }
 
@@ -263,8 +282,6 @@ void MainWindow::readSettings()
         static_cast<Qt::CheckState>(settings.value("ADI", 2).toInt()));
     ui->checkBoxCompass->setCheckState(
         static_cast<Qt::CheckState>(settings.value("compass", 2).toInt()));
-    ui->checkBoxVideoPanel->setCheckState(
-        static_cast<Qt::CheckState>(settings.value("panel", 2).toInt()));
     settings.endGroup();
 }
 
@@ -272,30 +289,28 @@ void MainWindow::on_actionVideo_triggered()
 {
     ui->mainWindowsVerticalLayout->setStretch(0, 5000);
     ui->textVehicleInfo->verticalScrollBar()->setValue(
-                ui->textVehicleInfo->verticalScrollBar()->maximum());
+        ui->textVehicleInfo->verticalScrollBar()->maximum());
     ui->textLogInfo->verticalScrollBar()->setValue(
-                ui->textLogInfo->verticalScrollBar()->maximum());
+        ui->textLogInfo->verticalScrollBar()->maximum());
 
     ui->stackedWidgetMain->setCurrentIndex(0);
 
     int m_width = ui->stackedWidgetVideo->width();
     int m_height = ui->stackedWidgetVideo->height();
-    ui->quickWidget->setGeometry(0, 0 , m_width, m_height);
-    ui->picture->setGeometry(0, 0 , m_width, m_height);
+    ui->quickWidget->setGeometry(0, 0, m_width, m_height);
+    ui->picture->setGeometry(0, 0, m_width, m_height);
 
     ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
     ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
-
-    ui->videoPanel->setGeometry(m_width - 320, 160, 320, 30);
 }
 
 void MainWindow::on_actionControl_triggered()
 {
     ui->mainWindowsVerticalLayout->setStretch(0, 4);
     ui->textVehicleInfo->verticalScrollBar()->setValue(
-                ui->textVehicleInfo->verticalScrollBar()->maximum());
+        ui->textVehicleInfo->verticalScrollBar()->maximum());
     ui->textLogInfo->verticalScrollBar()->setValue(
-                ui->textLogInfo->verticalScrollBar()->maximum());
+        ui->textLogInfo->verticalScrollBar()->maximum());
 
     ui->stackedWidgetMain->setCurrentIndex(1);
 
@@ -307,9 +322,9 @@ void MainWindow::on_actionSetings_triggered()
     ui->stackedWidgetMain->setCurrentIndex(3);
     ui->mainWindowsVerticalLayout->setStretch(0, 5000);
     ui->textVehicleInfo->verticalScrollBar()->setValue(
-                ui->textVehicleInfo->verticalScrollBar()->maximum());
+        ui->textVehicleInfo->verticalScrollBar()->maximum());
     ui->textLogInfo->verticalScrollBar()->setValue(
-                ui->textLogInfo->verticalScrollBar()->maximum());
+        ui->textLogInfo->verticalScrollBar()->maximum());
 }
 
 void MainWindow::on_armCheckBox_stateChanged(int state)
@@ -326,12 +341,12 @@ void MainWindow::on_armCheckBox_stateChanged(int state)
     {
         armCheckBox->setCheckState(Qt::Unchecked);
         QMessageBox::StandardButton ret =
-                QMessageBox::question(this,
-                                      "Arm vehicle",
-                                      "Do you want to ARM vehicle?",
-                                      QMessageBox::Yes | QMessageBox::No,
-                                      QMessageBox::Yes);
-        if(ret == QMessageBox::Yes)
+            QMessageBox::question(this,
+                                  "Arm vehicle",
+                                  "Do you want to ARM vehicle?",
+                                  QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::Yes);
+        if (ret == QMessageBox::Yes)
         {
             armCheckBox->setCheckState(Qt::Checked);
             ui->actionDisarm->setDisabled(false);
@@ -407,9 +422,9 @@ void MainWindow::on_depthHoldCheckBox_stateChanged(int arg1)
         return;
     }
 
-    if(armCheckBox->checkState() && modeComboBox->currentIndex() == 6)
+    if (armCheckBox->checkState() && modeComboBox->currentIndex() == 6)
     {
-        if(arg1)
+        if (arg1)
         {
             modeComboBox->setCurrentIndex(6);
             AS::as_api_depth_pid(currentVehicle, 0,
@@ -449,9 +464,9 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
     case 0:
         ui->mainWindowsVerticalLayout->setStretch(0, 5000);
         ui->textVehicleInfo->verticalScrollBar()->setValue(
-                    ui->textVehicleInfo->verticalScrollBar()->maximum());
+            ui->textVehicleInfo->verticalScrollBar()->maximum());
         ui->textLogInfo->verticalScrollBar()->setValue(
-                    ui->textLogInfo->verticalScrollBar()->maximum());
+            ui->textLogInfo->verticalScrollBar()->maximum());
 
         ui->actionVideo->setDisabled(true);
         ui->actionControl->setDisabled(false);
@@ -466,9 +481,9 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
     case 1:
         ui->mainWindowsVerticalLayout->setStretch(0, 4);
         ui->textVehicleInfo->verticalScrollBar()->setValue(
-                    ui->textVehicleInfo->verticalScrollBar()->maximum());
+            ui->textVehicleInfo->verticalScrollBar()->maximum());
         ui->textLogInfo->verticalScrollBar()->setValue(
-                    ui->textLogInfo->verticalScrollBar()->maximum());
+            ui->textLogInfo->verticalScrollBar()->maximum());
 
         // only enable actionVideo when it is checked
         if (ui->actionVideo->isChecked())
@@ -487,9 +502,9 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
     case 2:
         ui->mainWindowsVerticalLayout->setStretch(0, 4);
         ui->textVehicleInfo->verticalScrollBar()->setValue(
-                    ui->textVehicleInfo->verticalScrollBar()->maximum());
+            ui->textVehicleInfo->verticalScrollBar()->maximum());
         ui->textLogInfo->verticalScrollBar()->setValue(
-                    ui->textLogInfo->verticalScrollBar()->maximum());
+            ui->textLogInfo->verticalScrollBar()->maximum());
 
         if (ui->actionVideo->isChecked())
         {
@@ -507,9 +522,9 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
     case 3:
         ui->mainWindowsVerticalLayout->setStretch(0, 5000);
         ui->textVehicleInfo->verticalScrollBar()->setValue(
-                    ui->textVehicleInfo->verticalScrollBar()->maximum());
+            ui->textVehicleInfo->verticalScrollBar()->maximum());
         ui->textLogInfo->verticalScrollBar()->setValue(
-                    ui->textLogInfo->verticalScrollBar()->maximum());
+            ui->textLogInfo->verticalScrollBar()->maximum());
 
         if (ui->actionVideo->isChecked())
         {
@@ -610,8 +625,7 @@ void MainWindow::on_upperCloseControl_stateChanged(int state)
 
         break;
 
-    default:
-        ;
+    default:;
     }
 }
 
@@ -898,13 +912,13 @@ void MainWindow::on_checkBoxThrustersTest_stateChanged(int state)
 
         AS::as_api_send_rc_channels_override(currentVehicle, 1,
                                              pwmOutput[0],
-                pwmOutput[1],
-                pwmOutput[2],
-                pwmOutput[3],
-                pwmOutput[4],
-                pwmOutput[5],
-                pwmOutput[6],
-                pwmOutput[7]);
+                                             pwmOutput[1],
+                                             pwmOutput[2],
+                                             pwmOutput[3],
+                                             pwmOutput[4],
+                                             pwmOutput[5],
+                                             pwmOutput[6],
+                                             pwmOutput[7]);
 
         AS::as_api_vehicle_disarm(currentVehicle, 1);
 
@@ -912,18 +926,6 @@ void MainWindow::on_checkBoxThrustersTest_stateChanged(int state)
 
     default:
         break;
-    }
-}
-
-void MainWindow::on_checkBoxVideoPanel_stateChanged(int arg1)
-{
-    if (arg1)
-    {
-        ui->videoPanel->show();
-    }
-    else
-    {
-        ui->videoPanel->hide();
     }
 }
 
@@ -1016,12 +1018,12 @@ void MainWindow::on_closeVideoWindow_triggered()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     QMessageBox::StandardButton ret =
-            QMessageBox::question(this,
-                                  "Exit",
-                                  "Do you want to close SubControl?",
-                                  QMessageBox::Yes | QMessageBox::No,
-                                  QMessageBox::Yes);
-    if(ret == QMessageBox::Yes)
+        QMessageBox::question(this,
+                              "Exit",
+                              "Do you want to close SubControl?",
+                              QMessageBox::Yes | QMessageBox::No,
+                              QMessageBox::Yes);
+    if (ret == QMessageBox::Yes)
     {
         event->accept();
     }

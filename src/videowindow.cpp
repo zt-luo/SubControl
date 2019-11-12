@@ -41,8 +41,6 @@ void VideoWindow::resizeWindowsManual()
 
     ui->qCompass->setGeometry(m_width - 160, 0, 160, 160);
     ui->qADI->setGeometry(m_width - 320, 0, 160, 160);
-
-    ui->videoPanel->setGeometry(m_width - 320, 160, 320, 20);
 }
 
 void VideoWindow::resizeEvent(QResizeEvent* event)
@@ -71,11 +69,6 @@ void VideoWindow::updateAdiCompass(AS::Vehicle_Data_t *vehicle_data)
     ui->qADI->setData(roll, pitch);
     ui->qCompass->setYaw(yaw);
     ui->qCompass->setAlt(depth);
-
-    ui->labelRollValue->setNum(round(roll * 1000) / 1000);
-    ui->labelPitchValue->setNum(round(pitch * 1000) / 1000);
-    ui->labelYawValue->setNum(round(yaw * 1000) / 1000);
-    ui->labelDepthValue->setNum(round(depth * 1000) / 1000);
 }
 
 void  VideoWindow::on_updateVehicleDataSignal(AS::Vehicle_Data_t *vehicle_data)

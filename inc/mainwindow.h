@@ -120,8 +120,6 @@ private slots:
 
     void on_checkBoxThrustersTest_stateChanged(int state);
 
-    void on_checkBoxVideoPanel_stateChanged(int arg1);
-
     void on_checkBoxADI_stateChanged(int arg1);
 
     void on_checkBoxCompass_stateChanged(int arg1);
@@ -152,6 +150,15 @@ private:
     QCheckBox *armCheckBox;
     QLabel *modeLable;
     QComboBox *modeComboBox;
+
+    QLabel *yawLabel;
+    QLabel *yawLabelValue;
+    QLabel *pitchLabel;
+    QLabel *pitchLabelValue;
+    QLabel *rollLabel;
+    QLabel *rollLabelValue;
+    QLabel *depthLabel;
+    QLabel *depthLabelValue;
 
     QGamepadManager *joystickManager;
     QGamepad *m_joystick;
