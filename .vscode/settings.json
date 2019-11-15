@@ -3,6 +3,10 @@
     "files.associations": {
         "qmainwindow": "cpp",
         "qquickitem": "cpp",
-        "qquickwidget": "cpp"
+        "qquickwidget": "cpp",
+        "*.ipp": "cpp",
+        "*.tcc": "cpp",
+        "bitset": "cpp",
+        "cstdlib": "cpp"
     }
 }

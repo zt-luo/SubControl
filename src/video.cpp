@@ -9,41 +9,45 @@
 
 #include <iostream>
 
-class SetPlaying : public QRunnable
+// class SetPlaying : public QRunnable
+// {
+// public:
+//     SetPlaying(GstElement *);
+//     ~SetPlaying();
+
+//     void run();
+
+// private:
+//     GstElement *pipeline_;
+// };
+
+// SetPlaying::SetPlaying(GstElement *pipeline)
+// {
+//     pipeline_ = pipeline ? static_cast<GstElement *>(gst_object_ref(pipeline)) : NULL;
+// }
+
+// SetPlaying::~SetPlaying()
+// {
+//     // if (pipeline_)
+//     // gst_object_unref(pipeline_);
+// }
+
+// void SetPlaying::run()
+// {
+//     if (pipeline_)
+//     {
+//         gst_element_set_state(pipeline_, GST_STATE_PLAYING);
+//     }
+// }
+
+void MainWindow::setupGstPipeline(GstElement **pipeline, QQuickWidget *quickWidget)
 {
-public:
-    SetPlaying(GstElement *);
-    ~SetPlaying();
+    g_assert(*pipeline = gst_pipeline_new("receiver"));
 
-    void run();
-
-private:
-    GstElement *pipeline_;
-};
-
-SetPlaying::SetPlaying(GstElement *pipeline)
-{
-    pipeline_ = pipeline ? static_cast<GstElement *>(gst_object_ref(pipeline)) : NULL;
-}
-
-SetPlaying::~SetPlaying()
-{
-    // if (pipeline_)
-        // gst_object_unref(pipeline_);
-}
-
-void SetPlaying::run()
-{
-    if (pipeline_)
-        gst_element_set_state(pipeline_, GST_STATE_PLAYING);
-}
-
-void MainWindow::setupGstPipeline(GstElement *pipeline, QQuickWidget *quickWidget)
-{
-    pipeline = gst_pipeline_new(nullptr);
     GstElement *src = gst_element_factory_make("udpsrc", "udp");
     GstElement *demux = gst_element_factory_make("rtph264depay", "rtp-h264-depacketizer");
     GstElement *parser = gst_element_factory_make("h264parse", "h264-parser");
+    GstElement *queue = gst_element_factory_make("queue", nullptr);
     GstElement *decoder = gst_element_factory_make("avdec_h264", "h264-decoder");
     GstElement *videoconvert = gst_element_factory_make("videoconvert", "videoconvert");
     GstElement *glupload = gst_element_factory_make("glupload", nullptr);
@@ -66,13 +70,26 @@ void MainWindow::setupGstPipeline(GstElement *pipeline, QQuickWidget *quickWidge
 
     g_assert(src && glupload && sink);
 
-    gst_bin_add_many(GST_BIN(pipeline), src, demux, parser, decoder,
+    gst_bin_add_many(GST_BIN(*pipeline), src, demux, parser, queue, decoder,
                      videoconvert, glupload, glcolorconvert, sink, nullptr);
-    if (!gst_element_link_many(src, demux, parser, decoder,
+    if (!gst_element_link_many(src, demux, parser, queue, decoder,
                                videoconvert, glupload, glcolorconvert, sink, nullptr))
     {
         qCritical() << "failed to link elements";
     }
+
+    GstBus *bus = nullptr;
+
+    if ((bus = gst_pipeline_get_bus(GST_PIPELINE(*pipeline))) != nullptr)
+    {
+        gst_bus_enable_sync_message_emission(bus);
+        g_signal_connect(bus, "sync-message", G_CALLBACK(_onBusMessage), this);
+        gst_object_unref(bus);
+        bus = nullptr;
+    }
+
+    GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(*pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "pipeline-paused");
+    bool running = gst_element_set_state(*pipeline, GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE;
 
     assert(quickWidget);
     QUrl qmlSource("qrc:/assets/video.qml");
@@ -89,16 +106,35 @@ void MainWindow::setupGstPipeline(GstElement *pipeline, QQuickWidget *quickWidge
 
     qQuickWindows = videoItem->window();
     assert(qQuickWindows);
-    qQuickWindows->scheduleRenderJob(new SetPlaying(pipeline),
-                                     QQuickWindow::BeforeSynchronizingStage);
+    // qQuickWindows->scheduleRenderJob(new SetPlaying(*pipeline),
+    //                                  QQuickWindow::BeforeSynchronizingStage);
+
+    // GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "pipeline");
 }
 
 void MainWindow::setupVideo()
 {
-    setupGstPipeline(pipeline1, ui->quickWidget);
+    // setupGstPipeline(&pipeline1, ui->quickWidget);
+    videoReceiver->start(ui->quickWidget);
 }
 
-void setPiplineState(GstElement *pipeline, int gstState)
+void MainWindow::setPiplineState(GstElement *pipeline, int gstState)
 {
-    gst_element_set_state(pipeline, static_cast<GstState>(gstState));
+    // gst_element_set_state(pipeline, static_cast<GstState>(gstState));
+    GstBus *bus = nullptr;
+    g_assert(pipeline);
+    if ((bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline))) != nullptr)
+    {
+        gst_bus_disable_sync_message_emission(bus);
+        gst_object_unref(bus);
+        bus = nullptr;
+    }
+    gst_element_set_state(pipeline, GST_STATE_NULL);
+    // gst_bin_remove(GST_BIN(pipeline), _videoSink);
+    // gst_object_unref(pipeline);
+}
+
+gboolean MainWindow::_onBusMessage(GstBus* bus, GstMessage* msg, gpointer data)
+{
+    return !0;
 }

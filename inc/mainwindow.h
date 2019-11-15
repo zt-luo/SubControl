@@ -15,6 +15,7 @@
 
 #include "chart.h"
 #include "videowindow.h"
+#include "VideoReceiver.h"
 
 namespace AS {
 #include "./ardusub_api/api/inc/ardusub_api.h"
@@ -189,6 +190,8 @@ private:
     GstElement *pipeline1;
     GstElement *pipeline2;
 
+    VideoReceiver *videoReceiver;
+
     AS::Vehicle_Data_t *vehicle_data;
 
     uint16_t pwmOutput[8] = {1500};
@@ -204,7 +207,8 @@ private:
 
     void setupTimer();
 
-    void setupGstPipeline(GstElement *pipeline, QQuickWidget *quickWidget);
+    void setupGstPipeline(GstElement **pipeline, QQuickWidget *quickWidget);
+    void setPiplineState(GstElement *pipeline, int gstState);
     void setupVideo();
 
     void setupJoystick();
@@ -228,6 +232,8 @@ private:
     void readSettings();
 
     void closeEvent(QCloseEvent *event);
+
+    static gboolean _onBusMessage(GstBus* bus, GstMessage* msg, gpointer data);
 
 signals:
     void updateVehicleDataSignal(AS::Vehicle_Data_t *vehicle_data);

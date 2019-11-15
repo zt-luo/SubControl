@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1120</width>
     <height>700</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1200</width>
+    <width>1120</width>
     <height>700</height>
    </size>
   </property>
@@ -1750,7 +1750,7 @@
                <rect>
                 <x>20</x>
                 <y>60</y>
-                <width>281</width>
+                <width>121</width>
                 <height>30</height>
                </rect>
               </property>
@@ -1758,7 +1758,7 @@
                <item>
                 <widget class="QCheckBox" name="checkBoxVideoLink">
                  <property name="text">
-                  <string>Link:</string>
+                  <string>Port:</string>
                  </property>
                  <property name="checked">
                   <bool>true</bool>
@@ -1768,7 +1768,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEditVideoLink">
                  <property name="text">
-                  <string>http://192.168.2.2:2770/vlc.sdp</string>
+                  <string>5600</string>
                  </property>
                 </widget>
                </item>

@@ -45,6 +45,7 @@ qt5_wrap_cpp(moc_list
     "inc/mainwindow.h"
     "inc/qFlightInstruments.h"
     "inc/videowindow.h"
+    "inc/VideoReceiver.h"
 )
 
 qt5_add_resources(qrc_list 
@@ -86,6 +87,7 @@ set(src_list
     "src/timer.cpp"
     "src/video.cpp"
     "src/videowindow.cpp"
+    "src/VideoReceiver.cpp"
 )
 
 # name of the .exe file, window flag and the list of things to compile

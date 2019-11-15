@@ -6,19 +6,21 @@
 
 #include <iostream>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
-                                          ui(new Ui::MainWindow),
-                                          videoWindow(new VideoWindow(this)),
-                                          m_yawRollChart(new YawRollChart),
-                                          m_yawRollScene(new QGraphicsScene),
-                                          m_pitchChart(new PitchChart),
-                                          m_pitchScene(new QGraphicsScene),
-                                          m_depthChart(new DepthChart),
-                                          m_depthScene(new QGraphicsScene),
-                                          m_joystick(nullptr),
-                                          currentVehicle(0),
-                                          videoOk(false),
-                                          vehicle_data(new AS::Vehicle_Data_t)
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent),
+      ui(new Ui::MainWindow),
+      videoWindow(new VideoWindow(this)),
+      m_yawRollChart(new YawRollChart),
+      m_yawRollScene(new QGraphicsScene),
+      m_pitchChart(new PitchChart),
+      m_pitchScene(new QGraphicsScene),
+      m_depthChart(new DepthChart),
+      m_depthScene(new QGraphicsScene),
+      m_joystick(nullptr),
+      currentVehicle(0),
+      videoOk(false),
+      videoReceiver(new VideoReceiver(this)),
+      vehicle_data(new AS::Vehicle_Data_t)
 {
     ui->setupUi(this);
     setWindowIcon(QIcon(":/assets/icon/main_icon.svg"));
@@ -955,20 +957,13 @@ void MainWindow::on_checkBoxCompass_stateChanged(int arg1)
 
 void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
 {
-    if (!videoOk)
-    {
-        return;
-    }
-
     if (arg1)
     {
-        ui->quickWidget->show();
-        videoWindow->showVideo(true);
+        videoReceiver->play();
     }
     else
     {
-        ui->quickWidget->hide();
-        videoWindow->showVideo(false);
+        videoReceiver->pause();
     }
 }
 
