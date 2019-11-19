@@ -56,7 +56,7 @@ void VideoReceiver::start(QQuickWidget *quickWidget)
     GstElement *demux = gst_element_factory_make("rtph264depay", "rtp-h264-depacketizer");
     GstElement *parser = gst_element_factory_make("h264parse", "h264-parser");
     _tee = gst_element_factory_make("tee", nullptr);
-    GstElement *queue = gst_element_factory_make("queue", nullptr);
+    GstElement *queue = gst_element_factory_make("queue", "queue1");
     GstElement *decoder = gst_element_factory_make("avdec_h264", "h264-decoder");
     GstElement *videoconvert = gst_element_factory_make("videoconvert", "videoconvert");
     GstElement *glupload = gst_element_factory_make("glupload", "glupload");
@@ -139,7 +139,7 @@ bool VideoReceiver::startRecording()
     // TODO: error handle
     GstPad *teepad = gst_element_get_request_pad(_tee, "src_%u");
 
-    GstElement *queue = gst_element_factory_make("queue", nullptr);
+    GstElement *queue = gst_element_factory_make("queue", "queue2");
     GstElement *parse = gst_element_factory_make("h264parse", "h264-parser-recording");
     GstElement *mux = gst_element_factory_make("matroskamux", "matroska-mux");
     GstElement *filesink = gst_element_factory_make("filesink", "mkv-filesink");
@@ -302,7 +302,7 @@ VideoReceiver::_unlinkCallBack(GstPad *pad, GstPadProbeInfo *info, gpointer user
             }
 
             // Send EOS at the beginning of the pipeline
-            GstPad *sinkpad = gst_element_get_static_pad(recordingElement->sink, "sink");
+            GstPad *sinkpad = gst_element_get_static_pad(recordingElement->queue, "sink");
             gst_pad_send_event(sinkpad, gst_event_new_eos());
             gst_object_unref(sinkpad);
             sinkpad = nullptr;
@@ -348,7 +348,7 @@ gboolean VideoReceiver::_onBusMessage(GstBus *bus, GstMessage *msg, gpointer dat
         // gst_element_set_state(recordingElement->sink, GST_STATE_NULL);
         gst_element_set_state(recordingElement->parse, GST_STATE_NULL);
         gst_element_set_state(recordingElement->mux, GST_STATE_NULL);
-        gst_element_set_state(recordingElement->queue, GST_STATE_NULL);
+        // gst_element_set_state(recordingElement->queue, GST_STATE_NULL);
 
         gst_object_unref(recordingElement->queue);
         gst_object_unref(recordingElement->parse);
