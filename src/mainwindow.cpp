@@ -78,7 +78,16 @@ MainWindow::~MainWindow()
 {
     videoWindow->close();
     writeSettings();
+
     delete ui;
+    delete videoWindow;
+    delete m_yawRollChart;
+    delete m_yawRollScene;
+    delete m_pitchChart;
+    delete m_pitchScene;
+    delete m_depthChart;
+    delete m_depthScene;
+    delete videoReceiver;
 }
 
 void MainWindow::resizeWindowsManual()

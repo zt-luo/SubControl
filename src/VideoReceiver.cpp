@@ -34,28 +34,31 @@ void SetPlaying::run()
 
 VideoReceiver::VideoReceiver(QObject *parent)
     : QObject(parent),
-      _pipeline(nullptr),
-      _pipelineStopRec(nullptr),
       _recordingElement(new RecordingElement),
-      _tee(nullptr),
       _starting(false),
       _playing(false),
       _pausing(false),
       _recording(false)
 {
+    _pipeline = gst_pipeline_new("receiver");
+    _tee = gst_element_factory_make("tee", nullptr);
 }
 
 VideoReceiver::~VideoReceiver()
 {
+    delete _recordingElement;
+
+    g_object_unref(_pipeline);
+    g_object_unref(_tee);
 }
 
 void VideoReceiver::start(QQuickWidget *quickWidget)
 {
-    _pipeline = gst_pipeline_new("receiver");
+    // pipeline
     GstElement *src = gst_element_factory_make("udpsrc", "udp");
     GstElement *demux = gst_element_factory_make("rtph264depay", "rtp-h264-depacketizer");
     GstElement *parser = gst_element_factory_make("h264parse", "h264-parser");
-    _tee = gst_element_factory_make("tee", nullptr);
+    // tee
     GstElement *queue = gst_element_factory_make("queue", "queue1");
     GstElement *decoder = gst_element_factory_make("avdec_h264", "h264-decoder");
     GstElement *videoconvert = gst_element_factory_make("videoconvert", "videoconvert");
@@ -138,6 +141,8 @@ bool VideoReceiver::startRecording()
 {
     // TODO: error handle
     GstPad *teepad = gst_element_get_request_pad(_tee, "src_%u");
+
+    _pipelineStopRec= gst_pipeline_new("pipelineStopRec");
 
     GstElement *queue = gst_element_factory_make("queue", "queue2");
     GstElement *parse = gst_element_factory_make("h264parse", "h264-parser-recording");
