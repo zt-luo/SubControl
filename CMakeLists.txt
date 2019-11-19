@@ -19,7 +19,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("Looking for Qt...")
 # Qt modules (https://doc.qt.io/qt-5/qtmodules.html) you're using in your application
-find_package(Qt5 REQUIRED Widgets Core Gui Charts Gamepad QuickWidgets)
+find_package(Qt5 REQUIRED Widgets Core Gui Charts Gamepad QuickWidgets Qml)
 if (${Qt5_FOUND})
     message("Found Qt " ${Qt5_VERSION})
 else()
@@ -33,6 +33,7 @@ link_libraries(
     Qt5::Charts
     Qt5::Gamepad
     Qt5::QuickWidgets
+    Qt5::Qml
     )
 
 qt5_wrap_ui(ui_list 

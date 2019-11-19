@@ -65,6 +65,10 @@ MainWindow::MainWindow(QWidget *parent)
     setupJoystick();
     setupConfigView();
 
+    this->setMouseTracking(true);
+    ui->centralWidget->setMouseTracking(true);
+    ui->quickWidget->setMouseTracking(true);
+
     connect(videoWindow, &VideoWindow::closeWindows, this, &MainWindow::on_closeVideoWindow_triggered);
     connect(this, &MainWindow::updateVehicleDataSignal,
             videoWindow, &VideoWindow::on_updateVehicleDataSignal);
@@ -960,10 +964,12 @@ void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
     if (arg1)
     {
         videoReceiver->play();
+        ui->quickWidget->show();
     }
     else
     {
         videoReceiver->pause();
+        ui->quickWidget->hide();
     }
 }
 
@@ -1026,4 +1032,39 @@ void MainWindow::closeEvent(QCloseEvent *event)
     {
         event->ignore();
     }
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    // QQuickWidget can not response to mouse move event when is not foremost
+    // qDebug() << "mouse move";
+    videoReceiver->setRecordingHightlight(enterRecordingButton(event->pos()));
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    if ((event->buttons() & Qt::LeftButton) &&
+        enterRecordingButton(event->pos()))
+    {
+        if (!_recoding)
+        {
+            _recoding = videoReceiver->startRecording();
+        }
+        else
+        {
+            videoReceiver->stopRecording();
+            _recoding = false;
+        }
+    }
+}
+
+bool MainWindow::enterRecordingButton(QPoint postion)
+{
+    QPoint buttonCenter =
+        QPoint(this->width() - 20 - 18,
+               this->height() - ui->textLogInfo->height() - 20 - 18);
+
+    return (postion.x() - buttonCenter.x()) * (postion.x() - buttonCenter.x()) +
+               (postion.y() - buttonCenter.y()) * (postion.y() - buttonCenter.y()) <
+           18 * 18;
 }

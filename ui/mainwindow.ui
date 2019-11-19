@@ -29,7 +29,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidgetMain">
         <property name="currentIndex">
-         <number>3</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="stackedWidgetVideo">
          <widget class="QCompass" name="qCompass" native="true">
@@ -76,7 +76,7 @@
            <rect>
             <x>10</x>
             <y>10</y>
-            <width>761</width>
+            <width>671</width>
             <height>371</height>
            </rect>
           </property>
@@ -84,8 +84,8 @@
            <enum>QQuickWidget::SizeRootObjectToView</enum>
           </property>
          </widget>
-         <zorder>quickWidget</zorder>
          <zorder>picture</zorder>
+         <zorder>quickWidget</zorder>
          <zorder>qCompass</zorder>
          <zorder>qADI</zorder>
         </widget>

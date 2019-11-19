@@ -16,8 +16,10 @@
         <file>assets/icon/thruster.png</file>
         <file>assets/icon/video.svg</file>
         <file>assets/icon/video2.svg</file>
-        <file>assets/picture/background.jpg</file>
         <file>assets/icon/monitor.svg</file>
+        <file>assets/icon/camera.svg</file>
+        <file>assets/icon/battery.svg</file>
+        <file>assets/picture/background.jpg</file>
         <file>assets/video.qml</file>
     </qresource>
 </RCC>

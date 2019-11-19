@@ -15,6 +15,7 @@
                 "/usr/include/qt/QtGui",
                 "/usr/include/qt/QtQuick",
                 "/usr/include/qt/QtQuickWidgets",
+                "/usr/include/qt/QtQml",
                 "build/ui_mainwindow.h",
                 "build/ui_videowindow.h"
             ],

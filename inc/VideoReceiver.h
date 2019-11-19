@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QQuickWidget>
 #include <QQuickItem>
+#include <QQmlContext>
 
 #include <gst/gst.h>
 
@@ -35,17 +36,35 @@ private:
     bool _pausing;
     bool _recording;
 
+    bool _mouseOverRecordingButton;
+
     static gboolean _onBusMessage(GstBus *bus, GstMessage *message, gpointer data);
     static GstPadProbeReturn _unlinkCallBack(GstPad *pad, GstPadProbeInfo *info, gpointer data);
     static GstPadProbeReturn _keyframeWatch(GstPad *pad, GstPadProbeInfo *info, gpointer data);
 
 public:
+    Q_PROPERTY(bool recording
+                   READ getRecording
+                       NOTIFY onRecordingChanged)
+
+    Q_PROPERTY(bool mouseOverRecordingButton
+                   READ getMouseOverRecordingButton
+                       NOTIFY onMouseOverRecordingButtonChanged)
+
     VideoReceiver(QObject *parent = nullptr);
     ~VideoReceiver();
+
+    virtual bool getRecording() { return _recording; }
+    virtual bool getMouseOverRecordingButton() { return _mouseOverRecordingButton; }
 
     void start(QQuickWidget *quickWidget);
     void play();
     void pause();
-    void startRecording();
+    bool startRecording();
     void stopRecording();
+    void setRecordingHightlight(bool hightlight);
+
+signals:
+    void onRecordingChanged();
+    void onMouseOverRecordingButtonChanged();
 };

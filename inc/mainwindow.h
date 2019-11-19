@@ -187,10 +187,8 @@ private:
     uint8_t currentVehicle;
     bool videoOk;
 
-    GstElement *pipeline1;
-    GstElement *pipeline2;
-
-    VideoReceiver *videoReceiver;
+    VideoReceiver *videoReceiver;\
+    bool _recoding;
 
     AS::Vehicle_Data_t *vehicle_data;
 
@@ -207,14 +205,14 @@ private:
 
     void setupTimer();
 
-    void setupGstPipeline(GstElement **pipeline, QQuickWidget *quickWidget);
-    void setPiplineState(GstElement *pipeline, int gstState);
     void setupVideo();
 
     void setupJoystick();
     void connectJoystickSlots(bool b, QGamepad* m_joystick);
 
     void setupConfigView();
+
+    bool enterRecordingButton(QPoint postion);
 
     // Timer callback
     void closeControl();
@@ -232,8 +230,8 @@ private:
     void readSettings();
 
     void closeEvent(QCloseEvent *event);
-
-    static gboolean _onBusMessage(GstBus* bus, GstMessage* msg, gpointer data);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
 
 signals:
     void updateVehicleDataSignal(AS::Vehicle_Data_t *vehicle_data);

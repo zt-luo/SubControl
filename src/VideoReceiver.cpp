@@ -88,6 +88,7 @@ void VideoReceiver::start(QQuickWidget *quickWidget)
     }
 
     assert(quickWidget);
+    quickWidget->rootContext()->setContextProperty("videoReceiver", this);
     QUrl qmlSource("qrc:/assets/video.qml");
     quickWidget->setSource(qmlSource);
 
@@ -95,8 +96,7 @@ void VideoReceiver::start(QQuickWidget *quickWidget)
     QQuickWindow *qQuickWindows;
 
     /* find and set the videoItem on the sink */
-    videoItem = quickWidget->rootObject();
-    videoItem = videoItem->findChild<QQuickItem *>("videoItem");
+    videoItem = quickWidget->rootObject()->findChild<QQuickItem *>("videoItem");
     assert(videoItem);
     g_object_set(qmlsink, "widget", videoItem, nullptr);
 
@@ -134,14 +134,18 @@ void VideoReceiver::pause()
     _pausing = true;
 }
 
-void VideoReceiver::startRecording()
+bool VideoReceiver::startRecording()
 {
+    // TODO: error handle
     GstPad *teepad = gst_element_get_request_pad(_tee, "src_%u");
 
     GstElement *queue = gst_element_factory_make("queue", nullptr);
     GstElement *parse = gst_element_factory_make("h264parse", "h264-parser-recording");
     GstElement *mux = gst_element_factory_make("matroskamux", "matroska-mux");
     GstElement *filesink = gst_element_factory_make("filesink", "mkv-filesink");
+
+    g_object_set(static_cast<gpointer>(mux), "streamable", false, nullptr);
+    g_object_set(static_cast<gpointer>(mux), "writing-app", qPrintable("SubControl"), nullptr);
 
     QString videoFile = "";
     videoFile += QDateTime::currentDateTime().toString("yyyy-MM-dd_hh.mm.ss") + ".mkv";
@@ -165,11 +169,14 @@ void VideoReceiver::startRecording()
     _recordingElement->sink = filesink;
     _recordingElement->removing = false;
 
-    // Install a probe on the recording branch to drop buffers until we hit our first keyframe
-    // When we hit our first keyframe, we can offset the timestamps appropriately according to the first keyframe time
-    // This will ensure the first frame is a keyframe at t=0, and decoding can begin immediately on playback
+    // Install a probe on the recording branch to drop buffers until we hit our first keyframe.
+    // When we hit our first keyframe,
+    // we can offset the timestamps appropriately according to the first keyframe time
+    // This will ensure the first frame is a keyframe at t=0,
+    // and decoding can begin immediately on playback
     // Once we have this valid frame, we attach the filesink.
-    // Attaching it here would cause the filesink to fail to preroll and to stall the pipeline for a few seconds.
+    // Attaching it here would cause the filesink to fail to preroll
+    // and to stall the pipeline for a few seconds.
     GstPad *probepad = gst_element_get_static_pad(queue, "src");
     gst_pad_add_probe(probepad,
                       (GstPadProbeType)(GST_PAD_PROBE_TYPE_BUFFER),
@@ -186,6 +193,8 @@ void VideoReceiver::startRecording()
     GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(_pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "pipeline-recording");
 
     _recording = true;
+    emit onRecordingChanged();
+    return _recording;
 }
 
 void VideoReceiver::stopRecording()
@@ -200,6 +209,8 @@ void VideoReceiver::stopRecording()
     // Wait for data block before unlinking
     gst_pad_add_probe(gst_element_get_request_pad(_tee, "src_%u"),
                       GST_PAD_PROBE_TYPE_IDLE, _unlinkCallBack, _recordingElement, nullptr);
+    // _recording = false;
+    // emit onRecordingChanged();
 }
 
 GstPadProbeReturn VideoReceiver::_keyframeWatch(GstPad *pad,
@@ -284,15 +295,14 @@ VideoReceiver::_unlinkCallBack(GstPad *pad, GstPadProbeInfo *info, gpointer user
             gst_object_unref(bus);
             bus = nullptr;
 
-            if (gst_element_set_state(
-                    recordingElement->pipelineStopRec, GST_STATE_PLAYING) ==
+            if (gst_element_set_state(recordingElement->pipelineStopRec, GST_STATE_PLAYING) ==
                 GST_STATE_CHANGE_FAILURE)
             {
                 qDebug() << "problem starting _pipelineStopRec";
             }
 
             // Send EOS at the beginning of the pipeline
-            GstPad *sinkpad = gst_element_get_static_pad(recordingElement->queue, "sink");
+            GstPad *sinkpad = gst_element_get_static_pad(recordingElement->sink, "sink");
             gst_pad_send_event(sinkpad, gst_event_new_eos());
             gst_object_unref(sinkpad);
             sinkpad = nullptr;
@@ -335,7 +345,7 @@ gboolean VideoReceiver::_onBusMessage(GstBus *bus, GstMessage *msg, gpointer dat
         gst_object_unref(recordingElement->pipelineStopRec);
         recordingElement->pipelineStopRec = nullptr;
 
-        gst_element_set_state(recordingElement->sink, GST_STATE_NULL);
+        // gst_element_set_state(recordingElement->sink, GST_STATE_NULL);
         gst_element_set_state(recordingElement->parse, GST_STATE_NULL);
         gst_element_set_state(recordingElement->mux, GST_STATE_NULL);
         gst_element_set_state(recordingElement->queue, GST_STATE_NULL);
@@ -346,6 +356,7 @@ gboolean VideoReceiver::_onBusMessage(GstBus *bus, GstMessage *msg, gpointer dat
         gst_object_unref(recordingElement->sink);
 
         pThis->_recording = false;
+        emit pThis->onRecordingChanged();
         recordingElement->removing = false;
 
         qDebug() << "Recording Stopped";
@@ -366,4 +377,10 @@ gboolean VideoReceiver::_onBusMessage(GstBus *bus, GstMessage *msg, gpointer dat
     }
 
     return TRUE;
+}
+
+void VideoReceiver::setRecordingHightlight(bool hightlight)
+{
+    _mouseOverRecordingButton = hightlight;
+    emit onMouseOverRecordingButtonChanged();
 }
