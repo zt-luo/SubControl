@@ -42,6 +42,8 @@ VideoReceiver::VideoReceiver(QObject *parent)
 {
     _pipeline = gst_pipeline_new("receiver");
     _tee = gst_element_factory_make("tee", nullptr);
+
+    connect(this, &VideoReceiver::pipelineEOF, this, &VideoReceiver::onPipelineEOF);
 }
 
 VideoReceiver::~VideoReceiver()
@@ -142,7 +144,7 @@ bool VideoReceiver::startRecording()
     // TODO: error handle
     GstPad *teepad = gst_element_get_request_pad(_tee, "src_%u");
 
-    _pipelineStopRec= gst_pipeline_new("pipelineStopRec");
+    _pipelineStopRec = gst_pipeline_new("pipelineStopRec");
 
     GstElement *queue = gst_element_factory_make("queue", "queue2");
     GstElement *parse = gst_element_factory_make("h264parse", "h264-parser-recording");
@@ -341,30 +343,13 @@ gboolean VideoReceiver::_onBusMessage(GstBus *bus, GstMessage *msg, gpointer dat
     break;
 
     case (GST_MESSAGE_EOS):
-        gst_bin_remove(GST_BIN(recordingElement->pipelineStopRec), recordingElement->queue);
-        gst_bin_remove(GST_BIN(recordingElement->pipelineStopRec), recordingElement->parse);
-        gst_bin_remove(GST_BIN(recordingElement->pipelineStopRec), recordingElement->mux);
-        gst_bin_remove(GST_BIN(recordingElement->pipelineStopRec), recordingElement->sink);
 
-        gst_element_set_state(recordingElement->pipelineStopRec, GST_STATE_NULL);
-        gst_object_unref(recordingElement->pipelineStopRec);
-        recordingElement->pipelineStopRec = nullptr;
-
-        // gst_element_set_state(recordingElement->sink, GST_STATE_NULL);
-        gst_element_set_state(recordingElement->parse, GST_STATE_NULL);
-        gst_element_set_state(recordingElement->mux, GST_STATE_NULL);
-        // gst_element_set_state(recordingElement->queue, GST_STATE_NULL);
-
-        gst_object_unref(recordingElement->queue);
-        gst_object_unref(recordingElement->parse);
-        gst_object_unref(recordingElement->mux);
-        gst_object_unref(recordingElement->sink);
+        emit pThis->pipelineEOF();
 
         pThis->_recording = false;
         emit pThis->onRecordingChanged();
         recordingElement->removing = false;
 
-        qDebug() << "Recording Stopped";
         break;
 
     case (GST_MESSAGE_STATE_CHANGED):
@@ -388,4 +373,28 @@ void VideoReceiver::setRecordingHightlight(bool hightlight)
 {
     _mouseOverRecordingButton = hightlight;
     emit onMouseOverRecordingButtonChanged();
+}
+
+void VideoReceiver::onPipelineEOF()
+{
+    gst_bin_remove(GST_BIN(_recordingElement->pipelineStopRec), _recordingElement->queue);
+    gst_bin_remove(GST_BIN(_recordingElement->pipelineStopRec), _recordingElement->parse);
+    gst_bin_remove(GST_BIN(_recordingElement->pipelineStopRec), _recordingElement->mux);
+    gst_bin_remove(GST_BIN(_recordingElement->pipelineStopRec), _recordingElement->sink);
+
+    gst_element_set_state(_recordingElement->pipelineStopRec, GST_STATE_NULL);
+    gst_object_unref(_recordingElement->pipelineStopRec);
+    _recordingElement->pipelineStopRec = nullptr;
+
+    gst_element_set_state(_recordingElement->sink, GST_STATE_NULL);
+    gst_element_set_state(_recordingElement->parse, GST_STATE_NULL);
+    gst_element_set_state(_recordingElement->mux, GST_STATE_NULL);
+    gst_element_set_state(_recordingElement->queue, GST_STATE_NULL);
+
+    gst_object_unref(_recordingElement->queue);
+    gst_object_unref(_recordingElement->parse);
+    gst_object_unref(_recordingElement->mux);
+    gst_object_unref(_recordingElement->sink);
+
+    qDebug() << "Recording Stopped";
 }

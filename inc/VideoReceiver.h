@@ -42,6 +42,9 @@ private:
     static GstPadProbeReturn _unlinkCallBack(GstPad *pad, GstPadProbeInfo *info, gpointer data);
     static GstPadProbeReturn _keyframeWatch(GstPad *pad, GstPadProbeInfo *info, gpointer data);
 
+private slots:
+    void onPipelineEOF();
+
 public:
     Q_PROPERTY(bool recording
                    READ getRecording
@@ -67,4 +70,5 @@ public:
 signals:
     void onRecordingChanged();
     void onMouseOverRecordingButtonChanged();
+    void pipelineEOF();
 };
