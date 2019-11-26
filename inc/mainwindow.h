@@ -133,6 +133,10 @@ private slots:
 
     void on_closeVideoWindow_triggered();
 
+    void on_pushButtonStartCV_clicked();
+
+    void on_pushButtonStopCV_clicked();
+
 private:
     Ui::MainWindow *ui;
     VideoWindow *videoWindow;
@@ -187,7 +191,7 @@ private:
     uint8_t currentVehicle;
     bool videoOk;
 
-    VideoReceiver *videoReceiver;\
+    VideoReceiver *videoReceiver;
     bool _recoding;
 
     AS::Vehicle_Data_t *vehicle_data;

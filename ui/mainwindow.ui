@@ -29,7 +29,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidgetMain">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="stackedWidgetVideo">
          <widget class="QCompass" name="qCompass" native="true">
@@ -1817,6 +1817,32 @@
               </property>
               <property name="checked">
                <bool>true</bool>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButtonStartCV">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>120</y>
+                <width>89</width>
+                <height>28</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Start CV</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButtonStopCV">
+              <property name="geometry">
+               <rect>
+                <x>120</x>
+                <y>120</y>
+                <width>89</width>
+                <height>28</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Stop CV</string>
               </property>
              </widget>
             </widget>

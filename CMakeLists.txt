@@ -58,15 +58,16 @@ pkg_search_module(GLIB REQUIRED glib-2.0)
 pkg_search_module(LIBSERIALPORT REQUIRED libserialport)
 pkg_search_module(GST REQUIRED gstreamer-1.0)
 pkg_search_module(GST_VIDEO REQUIRED gstreamer-video-1.0)
+pkg_search_module(GST_APP REQUIRED gstreamer-app-1.0)
 
 include_directories(
     ${GLIB_INCLUDE_DIRS} ${LIBSERIALPORT_INCLUDE_DIRS} 
-    ${GST_INCLUDE_DIRS} ${GST_VIDEO_INCLUDE_DIRS} 
+    ${GST_INCLUDE_DIRS} ${GST_VIDEO_INCLUDE_DIRS} ${GST_APP_INCLUDE_DIRS} 
     )
 
 link_libraries(
     ${GLIB_LDFLAGS} ${LIBSERIALPORT_LDFLAGS} 
-    ${GST_LDFLAGS} ${GST_VIDEO_LDFLAGS} 
+    ${GST_LDFLAGS} ${GST_VIDEO_LDFLAGS} ${GST_APP_LDFLAGS} 
     )
 
 ADD_SUBDIRECTORY(ardusub_api)

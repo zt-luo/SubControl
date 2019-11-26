@@ -1077,3 +1077,13 @@ bool MainWindow::enterRecordingButton(QPoint postion)
                (postion.y() - buttonCenter.y()) * (postion.y() - buttonCenter.y()) <
            18 * 18;
 }
+
+void MainWindow::on_pushButtonStartCV_clicked()
+{
+    videoReceiver->startCV();
+}
+
+void MainWindow::on_pushButtonStopCV_clicked()
+{
+    videoReceiver->stopCV();
+}
