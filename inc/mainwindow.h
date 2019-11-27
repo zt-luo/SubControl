@@ -192,7 +192,6 @@ private:
     bool videoOk;
 
     VideoReceiver *videoReceiver;
-    bool _recoding;
 
     AS::Vehicle_Data_t *vehicle_data;
 

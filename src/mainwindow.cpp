@@ -1055,14 +1055,13 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     if ((event->buttons() & Qt::LeftButton) &&
         enterRecordingButton(event->pos()))
     {
-        if (!_recoding)
+        if (!videoReceiver->getRecording())
         {
-            _recoding = videoReceiver->startRecording();
+            videoReceiver->startRecording();
         }
         else
         {
             videoReceiver->stopRecording();
-            _recoding = false;
         }
     }
 }

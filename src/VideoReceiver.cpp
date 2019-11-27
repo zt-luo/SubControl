@@ -222,8 +222,19 @@ bool VideoReceiver::startRecording()
         return false;
     }
 
-    _recording = true;
-    emit onRecordingChanged();
+    if (_recording)
+    {
+        qDebug() << "in recording processing!";
+        return false;
+    }
+
+    if (_recStarting)
+    {
+        qDebug() << "in recStarting processing!";
+        return false;
+    }
+
+    _recStarting = true;
 
     _pipelineStopRec = gst_pipeline_new("pipelineStopRec");
 
@@ -296,11 +307,20 @@ bool VideoReceiver::startRecording()
 void VideoReceiver::stopRecording()
 {
     // exit immediately if we are not recording
-    if (_pipeline == nullptr || !_recording)
+    if (!_playing || !_recording)
     {
         qDebug() << "Not recording!";
         return;
     }
+
+    if (_recStoping)
+    {
+        qDebug() << "in recStoping processing!";
+        return;
+    }
+
+    _recStoping = true;
+
     // Wait for data block before unlinking
     gst_pad_add_probe(gst_element_get_request_pad(_teeRecording, "src_%u"),
                       GST_PAD_PROBE_TYPE_IDLE, _unlinkCallBack, _recordingElement, nullptr);
@@ -337,6 +357,10 @@ GstPadProbeReturn VideoReceiver::_keyframeWatch(GstPad *pad,
             gst_bin_add_many(GST_BIN(recordingElement->pipeline), recordingElement->sink, nullptr);
             gst_element_link_many(recordingElement->mux, recordingElement->sink, nullptr);
             gst_element_sync_state_with_parent(recordingElement->sink);
+
+            recordingElement->pThis->_recording = true;
+            recordingElement->pThis->_recStarting = false;
+            emit recordingElement->pThis->onRecordingChanged();
 
             qDebug() << "Got keyframe, stop dropping buffers";
         }
@@ -431,13 +455,8 @@ gboolean VideoReceiver::_onBusMessage(GstBus *bus, GstMessage *msg, gpointer dat
 
     case (GST_MESSAGE_EOS):
 
-        pThis->_recStoping = true;
+        // do clean work in slot
         emit pThis->pipelineEOS();
-
-        pThis->_recording = false;
-        emit pThis->onRecordingChanged(); // for qml button
-
-        pThis->_recordingElement->removing = false;
 
         break;
 
@@ -486,6 +505,11 @@ void VideoReceiver::onPipelineEOS()
         gst_object_unref(_recordingElement->parse);
         gst_object_unref(_recordingElement->mux);
         gst_object_unref(_recordingElement->sink);
+
+        _recording = false;
+        emit onRecordingChanged(); // for qml button
+
+        _recStoping = false;
 
         qDebug() << "Recording Stopped.";
     }
