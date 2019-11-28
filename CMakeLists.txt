@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-# your project name
+# project name
 project("SubControl")
 
 add_compile_options(-g -O0 
@@ -10,6 +10,10 @@ add_compile_options(-g -O0
 
 # find includes in the corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+####################
+######## Qt ########
+
 # run moc automatically
 # set(CMAKE_AUTOMOC ON)
 # run uic automatically
@@ -18,7 +22,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # set (CMAKE_AUTORCC ON)
 
 message("Looking for Qt...")
-# Qt modules (https://doc.qt.io/qt-5/qtmodules.html) you're using in your application
+# Qt modules (https://doc.qt.io/qt-5/qtmodules.html)
 find_package(Qt5 REQUIRED Widgets Core Gui Charts Gamepad QuickWidgets Qml)
 if (${Qt5_FOUND})
     message("Found Qt " ${Qt5_VERSION})
@@ -46,11 +50,28 @@ qt5_wrap_cpp(moc_list
     "inc/mainwindow.h"
     "inc/qFlightInstruments.h"
     "inc/videowindow.h"
+
     "inc/VideoReceiver.h"
+    "inc/CvRunner.h"
 )
 
 qt5_add_resources(qrc_list 
     "assets.qrc")
+
+######## Qt ########
+####################
+
+
+####################
+###### OpenCV ######
+
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+link_libraries(${OpenCV_LIBS})
+
+###### OpenCV ######
+####################
+
 
 # check and search moudles
 find_package(PkgConfig REQUIRED)
@@ -59,6 +80,7 @@ pkg_search_module(LIBSERIALPORT REQUIRED libserialport)
 pkg_search_module(GST REQUIRED gstreamer-1.0)
 pkg_search_module(GST_VIDEO REQUIRED gstreamer-video-1.0)
 pkg_search_module(GST_APP REQUIRED gstreamer-app-1.0)
+
 
 include_directories(
     ${GLIB_INCLUDE_DIRS} ${LIBSERIALPORT_INCLUDE_DIRS} 
@@ -78,7 +100,7 @@ link_libraries(ardusub_static)
 include_directories("ardusub_api/mavlink_c_library_v2")
 include_directories("inc")
 
-# your source files
+# source files
 set(src_list
     "src/chart.cpp"
     "src/control.cpp"
@@ -89,7 +111,9 @@ set(src_list
     "src/timer.cpp"
     "src/video.cpp"
     "src/videowindow.cpp"
+
     "src/VideoReceiver.cpp"
+    "src/CvRunner.cpp"
 )
 
 # name of the .exe file, window flag and the list of things to compile
