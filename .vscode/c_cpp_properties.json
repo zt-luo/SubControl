@@ -7,6 +7,7 @@
                 "/usr/include/glib-2.0",
                 "/usr/lib/glib-2.0/include",
                 "/usr/include/gstreamer-1.0",
+                "/usr/include/opencv4",
                 "/usr/include/qt/QtWidgets",
                 "/usr/include/qt",
                 "/usr/include/qt/QtGamepad",

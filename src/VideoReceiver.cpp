@@ -1,4 +1,5 @@
 #include "VideoReceiver.h"
+#include <atomic>
 
 class
     SetPlaying : public QRunnable
@@ -69,11 +70,12 @@ void StopCvJob::run()
             gst_object_unref(_pVideoReceiver->_cvElement->pipelineStopCV);
             _pVideoReceiver->_cvElement->pipelineStopCV = nullptr;
 
-            //TODO: fix this
             gst_element_set_state(_pVideoReceiver->_cvElement->sink, GST_STATE_NULL);
+            gst_element_set_state(_pVideoReceiver->_cvElement->videoconvert, GST_STATE_NULL);
             gst_element_set_state(_pVideoReceiver->_cvElement->queue, GST_STATE_NULL);
 
             gst_object_unref(_pVideoReceiver->_cvElement->queue);
+            gst_object_unref(_pVideoReceiver->_cvElement->videoconvert);
             gst_object_unref(_pVideoReceiver->_cvElement->sink);
 
             _pVideoReceiver->_cvRunning = false;
@@ -82,7 +84,6 @@ void StopCvJob::run()
         }
     }
 }
-
 
 VideoReceiver::VideoReceiver(QObject *parent)
     : QObject(parent),
@@ -126,7 +127,7 @@ void VideoReceiver::start(QQuickWidget *quickWidget)
     GstElement *parser = gst_element_factory_make("h264parse", "h264-parser");
     GstElement *queue = gst_element_factory_make("queue", "queue-recording-main");
     GstElement *decoder = gst_element_factory_make("avdec_h264", "h264-decoder");
-    GstElement *videoconvert = gst_element_factory_make("videoconvert", "videoconvert");
+    GstElement *videoconvert = gst_element_factory_make("videoconvert", "videoconvert-main");
     GstElement *queue2 = gst_element_factory_make("queue", "queue-cv-main");
     GstElement *glupload = gst_element_factory_make("glupload", "glupload");
     GstElement *glcolorconvert = gst_element_factory_make("glcolorconvert", "glcolorconvert");
@@ -300,8 +301,7 @@ bool VideoReceiver::startRecording()
 
     GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(_pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "pipeline-recording");
 
-
-    return true;;
+    return true;
 }
 
 void VideoReceiver::stopRecording()
@@ -529,35 +529,46 @@ bool VideoReceiver::startCV()
         return false;
     }
 
-    gst_debug_set_default_threshold(GST_LEVEL_WARNING);
+    // gst_debug_set_default_threshold(GST_LEVEL_INFO);
+
     _pipelineStopCV = gst_pipeline_new("pipelineOpenCV");
 
     GstElement *queue = gst_element_factory_make("queue", "queue-cv");
+    // FIXME: can not give a name here?
+    GstElement *videoconvert = gst_element_factory_make("videoconvert", nullptr);
     GstElement *appsink = gst_element_factory_make("appsink", "appsink");
+    g_assert(_pipelineStopCV && queue && videoconvert && appsink);
 
-    g_assert(_pipelineStopCV && queue && appsink);
+    GstCaps *caps = gst_caps_new_simple("video/x-raw",
+                                        "format", G_TYPE_STRING, "BGR",
+                                        NULL);
+    g_assert(caps);
+    gst_app_sink_set_caps((GstAppSink *)appsink, caps);
+    gst_caps_unref(caps);
 
     gst_app_sink_set_emit_signals((GstAppSink *)appsink, true);
     gst_app_sink_set_drop((GstAppSink *)appsink, true);
-    gst_app_sink_set_max_buffers((GstAppSink *)appsink, 1);
+    gst_app_sink_set_max_buffers((GstAppSink *)appsink, 10);
 
-    gst_bin_add_many(GST_BIN(_pipeline), queue, appsink, nullptr);
-    gst_element_link_many(queue, appsink, nullptr);
+    gst_bin_add_many(GST_BIN(_pipeline), queue, videoconvert, appsink, nullptr);
+    gst_element_link_many(queue, videoconvert, appsink, nullptr);
 
     gst_element_sync_state_with_parent(queue);
+    gst_element_sync_state_with_parent(videoconvert);
     gst_element_sync_state_with_parent(appsink);
 
     _cvElement->pThis = this;
     _cvElement->pipeline = _pipeline;
     _cvElement->tee = _teeCV;
     _cvElement->queue = queue;
+    _cvElement->videoconvert = videoconvert;
     _cvElement->sink = appsink;
     _cvElement->removing = false;
 
     g_signal_connect(appsink, "new-sample", G_CALLBACK(newSample), (gpointer)this);
     g_signal_connect(appsink, "eos", G_CALLBACK(cvEOS), (gpointer)_cvElement);
 
-    // Link the recording branch to the pipeline
+    // Link the cv branch to the pipeline
     GstPad *teepad = gst_element_get_request_pad(_teeCV, "src_%u");
     GstPad *sinkpad = gst_element_get_static_pad(queue, "sink");
     g_assert(teepad && sinkpad);
@@ -569,14 +580,11 @@ bool VideoReceiver::startCV()
 
     gst_object_unref(sinkpad);
 
-    GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(_pipeline), GST_DEBUG_GRAPH_SHOW_FULL_PARAMS, "pipelineOpenCV");
+    GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(_pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "pipelineOpenCV");
 
-    gst_debug_set_default_threshold(GST_LEVEL_ERROR);
+    // gst_debug_set_default_threshold(GST_LEVEL_ERROR);
 
     _cvRunning = true;
-
-    // QThreadPool *threadPool = new QThreadPool;
-    // threadPool->start(new cvJob((GstAppSink *)appsink));
 
     return true;
 }
@@ -622,8 +630,8 @@ void VideoReceiver::stopCV()
         // Send EOS at the beginning of the pipeline
         GstPad *sinkpad = gst_element_get_static_pad(_cvElement->queue, "sink");
         gst_pad_send_event(sinkpad, gst_event_new_eos());
-        sinkpad = gst_element_get_static_pad(_cvElement->sink, "sink");
-        gst_pad_send_event(sinkpad, gst_event_new_eos());
+        // sinkpad = gst_element_get_static_pad(_cvElement->sink, "sink");
+        // gst_pad_send_event(sinkpad, gst_event_new_eos());
         gst_object_unref(sinkpad);
         sinkpad = nullptr;
         qDebug() << "CV branch unlinked";
@@ -654,12 +662,21 @@ gboolean VideoReceiver::newSample(GstAppSink *appsink, gpointer udata)
 
         size = gst_buffer_get_size(buffer);
 
-        mem = gst_buffer_get_memory(buffer, 0);
-
-        gst_memory_unref(mem);
-
         qDebug() << "height: " << height << "width: " << width << "size: " << size;
 
+        // Get frame data
+        GstMapInfo map;
+        gst_buffer_map(buffer, &map, GST_MAP_READ);
+
+        // move this to CvRunner
+        cv::Mat frame_bgr = cv::Mat(cv::Size(width, height), CV_8UC3, (char *)map.data);
+
+        cv::namedWindow("Frame", cv::WINDOW_NORMAL | cv::WINDOW_KEEPRATIO);
+        cv::imshow("Frame", frame_bgr);
+
+        cv::resizeWindow("Frame", width / 2 - 80, height / 2);
+
+        gst_buffer_unmap(buffer, &map);
         // The buffer remains valid as long as sample is valid.
         // gst_buffer_unref(buffer);
         gst_sample_unref(sample);

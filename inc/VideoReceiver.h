@@ -11,6 +11,8 @@
 #include <gst/app/app.h>
 #include <gst/app/gstappsink.h>
 
+#include <opencv2/opencv.hpp>
+
 class VideoReceiver : public QObject
 {
     Q_OBJECT
@@ -35,6 +37,7 @@ private:
         GstElement *pipelineStopCV;
         GstElement *tee;
         GstElement *queue;
+        GstElement *videoconvert;
         GstElement *sink;
         gboolean removing;
     };
