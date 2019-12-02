@@ -87,7 +87,7 @@ void StopCvJob::run()
     }
 }
 
-VideoReceiver::VideoReceiver(QObject *parent)
+VideoReceiver::VideoReceiver(QObject *parent, bool verticalFlip)
     : QObject(parent),
       _recordingElement(new RecordingElement),
       _cvElement(new CvElement),
@@ -98,7 +98,8 @@ VideoReceiver::VideoReceiver(QObject *parent)
       _recording(false),
       _recStoping(false),
       _cvRunning(false),
-      _cvStoping(false)
+      _cvStoping(false),
+      _verticalFlip(verticalFlip)
 {
     _pipeline = gst_pipeline_new("receiver");
     _teeRecording = gst_element_factory_make("tee", "tee-recording");
@@ -129,15 +130,18 @@ void VideoReceiver::start(QQuickWidget *quickWidget)
     GstElement *parser = gst_element_factory_make("h264parse", "h264-parser");
     GstElement *queue = gst_element_factory_make("queue", "queue-recording-main");
     GstElement *decoder = gst_element_factory_make("avdec_h264", "h264-decoder");
-    GstElement *videoconvert = gst_element_factory_make("videoconvert", "videoconvert-main");
+    GstElement *videoflip = gst_element_factory_make("videoflip", "vertical-flip");
     GstElement *queue2 = gst_element_factory_make("queue", "queue-cv-main");
     GstElement *glupload = gst_element_factory_make("glupload", "glupload");
     GstElement *glcolorconvert = gst_element_factory_make("glcolorconvert", "glcolorconvert");
-    GstCaps *caps = nullptr;
+    GstElement *qmlsink = gst_element_factory_make("qmlglsink", "qmlsink");    
+    /* the plugin must be loaded before loading the qml file to register the
+     * GstGLVideoItem qml item */
 
-    g_assert(src && demux && parser && queue && decoder && videoconvert &&
+    g_assert(src && demux && parser && queue && decoder && videoflip &&
              queue2 && glupload && glcolorconvert);
 
+    GstCaps *caps = nullptr;
     if ((caps = gst_caps_from_string(
              "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264")) == nullptr)
     {
@@ -145,20 +149,20 @@ void VideoReceiver::start(QQuickWidget *quickWidget)
     }
 
     g_object_set(G_OBJECT(src), "caps", caps, nullptr);
+    g_object_set(G_OBJECT(src), "port", 5600, nullptr);  // set UDP port
 
-    /* the plugin must be loaded before loading the qml file to register the
-     * GstGLVideoItem qml item */
-    GstElement *qmlsink = gst_element_factory_make("qmlglsink", "qmlsink");
-
-    g_object_set(G_OBJECT(src), "port", 5600, nullptr);
+    if (_verticalFlip)
+    {
+        g_object_set(videoflip, "video-direction", 5, nullptr);
+    }
 
     g_assert(src && glupload && qmlsink);
 
     gst_bin_add_many(GST_BIN(_pipeline), src, demux, parser, _teeRecording, queue, decoder,
-                     videoconvert, _teeCV, queue2, glupload, glcolorconvert, qmlsink,
+                     videoflip, _teeCV, queue2, glupload, glcolorconvert, qmlsink,
                      nullptr);
     if (!gst_element_link_many(src, demux, parser, _teeRecording, queue, decoder,
-                               videoconvert, _teeCV, queue2, glupload, glcolorconvert, qmlsink,
+                               videoflip, _teeCV, queue2, glupload, glcolorconvert, qmlsink,
                                nullptr))
     {
         qCritical() << "failed to link elements";

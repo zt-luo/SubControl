@@ -65,6 +65,7 @@ public:
     bool _cvStoping;
 
 private:
+    bool _verticalFlip;
     bool _mouseOverRecordingButton;
 
     static gboolean _onBusMessage(GstBus *bus, GstMessage *message, gpointer data);
@@ -85,7 +86,7 @@ public:
                    READ getMouseOverRecordingButton
                        NOTIFY onMouseOverRecordingButtonChanged)
 
-    VideoReceiver(QObject *parent = nullptr);
+    VideoReceiver(QObject *parent = nullptr, bool verticalFlip = false);
     ~VideoReceiver();
 
     virtual bool getRecording() { return _recording; }

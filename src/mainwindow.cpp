@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_joystick(nullptr),
       currentVehicle(0),
       videoOk(false),
-      videoReceiver(new VideoReceiver(this)),
+      videoReceiver(new VideoReceiver(this, true)),
       vehicle_data(new AS::Vehicle_Data_t)
 {
     ui->setupUi(this);
