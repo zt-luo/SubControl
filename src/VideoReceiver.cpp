@@ -61,8 +61,10 @@ void StopCvJob::run()
     {
         if (_pVideoReceiver->_cvStoping)
         {
+            // gst_debug_set_default_threshold(GST_LEVEL_INFO);
             gst_bin_remove_many(GST_BIN(_pVideoReceiver->_cvElement->pipelineStopCV),
                                 _pVideoReceiver->_cvElement->queue,
+                                _pVideoReceiver->_cvElement->videoconvert,
                                 _pVideoReceiver->_cvElement->sink,
                                 nullptr);
 
@@ -534,8 +536,7 @@ bool VideoReceiver::startCV()
     _pipelineStopCV = gst_pipeline_new("pipelineOpenCV");
 
     GstElement *queue = gst_element_factory_make("queue", "queue-cv");
-    // FIXME: can not give a name here?
-    GstElement *videoconvert = gst_element_factory_make("videoconvert", nullptr);
+    GstElement *videoconvert = gst_element_factory_make("videoconvert", "videoconvert-cv");
     GstElement *appsink = gst_element_factory_make("appsink", "appsink");
     g_assert(_pipelineStopCV && queue && videoconvert && appsink);
 
@@ -602,7 +603,7 @@ void VideoReceiver::stopCV()
     {
         // unlinks
         gst_bin_remove_many(GST_BIN(_pipeline),
-                            _cvElement->queue, _cvElement->sink,
+                            _cvElement->queue, _cvElement->videoconvert, _cvElement->sink,
                             nullptr);
 
         // Give tee its pad back
@@ -616,9 +617,9 @@ void VideoReceiver::stopCV()
 
         // Put our elements from the recording branch into the temporary pipeline
         gst_bin_add_many(GST_BIN(_cvElement->pipelineStopCV),
-                         _cvElement->queue, _cvElement->sink,
+                         _cvElement->queue, _cvElement->videoconvert, _cvElement->sink,
                          nullptr);
-        gst_element_link_many(_cvElement->queue, _cvElement->sink,
+        gst_element_link_many(_cvElement->queue, _cvElement->videoconvert, _cvElement->sink,
                               nullptr);
 
         if (gst_element_set_state(_cvElement->pipelineStopCV, GST_STATE_PLAYING) ==
