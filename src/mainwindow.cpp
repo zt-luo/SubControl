@@ -8,6 +8,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
+      cvRunner(nullptr),
       ui(new Ui::MainWindow),
       videoWindow(new VideoWindow(this)),
       m_yawRollChart(new YawRollChart),
@@ -1079,10 +1080,10 @@ bool MainWindow::enterRecordingButton(QPoint postion)
 
 void MainWindow::on_pushButtonStartCV_clicked()
 {
-    videoReceiver->startCV();
+    emit videoReceiver->playCvProcess();
 }
 
 void MainWindow::on_pushButtonStopCV_clicked()
 {
-    videoReceiver->stopCV();
+    emit videoReceiver->pauseCvProcess();
 }

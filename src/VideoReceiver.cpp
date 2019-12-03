@@ -1,5 +1,5 @@
 #include "VideoReceiver.h"
-#include <atomic>
+#include "mainwindow.h"
 
 class
     SetPlaying : public QRunnable
@@ -97,9 +97,17 @@ VideoReceiver::VideoReceiver(QObject *parent, bool verticalFlip)
       _recStarting(false),
       _recording(false),
       _recStoping(false),
+      _cvProcessing(true),
       _cvRunning(false),
       _cvStoping(false),
-      _verticalFlip(verticalFlip)
+      _verticalFlip(verticalFlip),
+      _videoWidth(0),
+      _videoHeight(0),
+      _videoSize(0),
+      _videoDataRaw(nullptr),
+      _videoMap(new GstMapInfo),
+      _videoBuffer(nullptr),
+      _cvRunner(nullptr)
 {
     _pipeline = gst_pipeline_new("receiver");
     _teeRecording = gst_element_factory_make("tee", "tee-recording");
@@ -108,11 +116,20 @@ VideoReceiver::VideoReceiver(QObject *parent, bool verticalFlip)
     g_assert(_pipeline && _teeRecording && _teeCV);
 
     connect(this, &VideoReceiver::pipelineEOS, this, &VideoReceiver::onPipelineEOS);
+    connect(this, &VideoReceiver::pauseCvProcess, this, &VideoReceiver::onPauseCvProcess);
+    connect(this, &VideoReceiver::playCvProcess, this, &VideoReceiver::onPlayCvProcess);
 }
 
 VideoReceiver::~VideoReceiver()
 {
     delete _recordingElement;
+    delete _cvElement;
+    delete _videoMap;
+
+    if (_cvRunner)
+    {
+        delete _cvRunner;
+    }
 
     g_object_unref(_pipeline);
     g_object_unref(_teeRecording);
@@ -134,7 +151,7 @@ void VideoReceiver::start(QQuickWidget *quickWidget)
     GstElement *queue2 = gst_element_factory_make("queue", "queue-cv-main");
     GstElement *glupload = gst_element_factory_make("glupload", "glupload");
     GstElement *glcolorconvert = gst_element_factory_make("glcolorconvert", "glcolorconvert");
-    GstElement *qmlsink = gst_element_factory_make("qmlglsink", "qmlsink");    
+    GstElement *qmlsink = gst_element_factory_make("qmlglsink", "qmlsink");
     /* the plugin must be loaded before loading the qml file to register the
      * GstGLVideoItem qml item */
 
@@ -149,7 +166,7 @@ void VideoReceiver::start(QQuickWidget *quickWidget)
     }
 
     g_object_set(G_OBJECT(src), "caps", caps, nullptr);
-    g_object_set(G_OBJECT(src), "port", 5600, nullptr);  // set UDP port
+    g_object_set(G_OBJECT(src), "port", 5600, nullptr); // set UDP port
 
     if (_verticalFlip)
     {
@@ -632,6 +649,7 @@ void VideoReceiver::stopCV()
             qDebug() << "problem starting _pipelineStopCV";
         }
 
+        gst_debug_set_default_threshold(GST_LEVEL_INFO);
         // Send EOS at the beginning of the pipeline
         GstPad *sinkpad = gst_element_get_static_pad(_cvElement->queue, "sink");
         gst_pad_send_event(sinkpad, gst_event_new_eos());
@@ -647,41 +665,49 @@ gboolean VideoReceiver::newSample(GstAppSink *appsink, gpointer udata)
 {
     VideoReceiver *pThis = (VideoReceiver *)udata;
 
-    int height, width, size;
-
-    GstMemory *mem;
+    if (!pThis->_cvProcessing)
+    {
+        return false;
+    }
 
     GstSample *sample = gst_app_sink_pull_sample(appsink);
 
     if (sample)
     {
-        GstBuffer *buffer = gst_sample_get_buffer(sample);
-        g_assert(buffer);
-
         GstCaps *cap = gst_sample_get_caps(sample);
         GstStructure *s = gst_caps_get_structure(cap, 0);
-        gst_structure_get_int(s, "height", &height);
-        gst_structure_get_int(s, "width", &width);
+        gst_structure_get_int(s, "width", &(pThis->_videoWidth));
+        gst_structure_get_int(s, "height", &(pThis->_videoHeight));
         // The caps remain valid as long as sample is valid.
         // gst_caps_unref(cap);
 
-        size = gst_buffer_get_size(buffer);
-
-        qDebug() << "height: " << height << "width: " << width << "size: " << size;
+        GstBuffer *buffer = gst_sample_get_buffer(sample);
+        g_assert(buffer);
+        // _videoSize = gst_buffer_get_size(buffer);
+        // qDebug() << "height: " << height << "width: " << width << "size: " << size;
 
         // Get frame data
-        GstMapInfo map;
-        gst_buffer_map(buffer, &map, GST_MAP_READ);
+        gst_buffer_map(buffer, pThis->_videoMap, GST_MAP_READ);
+        pThis->_videoDataRaw = (char *)(pThis->_videoMap->data);
 
-        // move this to CvRunner
-        cv::Mat frame_bgr = cv::Mat(cv::Size(width, height), CV_8UC3, (char *)map.data);
+        // check cvRunner
+        if (pThis->_cvRunner == nullptr)
+        {
+            MainWindow *pMainWindow = qobject_cast<MainWindow *>(pThis->parent());
+            pThis->_cvRunner = new CvRunner(pThis->_videoWidth,
+                                            pThis->_videoHeight
+                                            // , pThis  
+            // Cannot create children for a parent that is in a different thread
+            );
+            pMainWindow->cvRunner = pThis->_cvRunner;
+        }
 
-        cv::namedWindow("Frame", cv::WINDOW_NORMAL | cv::WINDOW_KEEPRATIO);
-        cv::imshow("Frame", frame_bgr);
+        // process cv frame
+        CvRunner::process(pThis->_videoDataRaw, pThis->_cvRunner);
 
-        cv::resizeWindow("Frame", width / 2 - 80, height / 2);
+        // clean
+        gst_buffer_unmap(pThis->_videoBuffer, pThis->_videoMap);
 
-        gst_buffer_unmap(buffer, &map);
         // The buffer remains valid as long as sample is valid.
         // gst_buffer_unref(buffer);
         gst_sample_unref(sample);
@@ -698,4 +724,34 @@ gboolean VideoReceiver::cvEOS(GstAppSink *appsink, gpointer udata)
     emit pThis->pipelineEOS();
 
     return true;
+}
+
+// slots
+void VideoReceiver::onPauseCvProcess()
+{
+    if (_cvProcessing)
+    {
+        _cvProcessing = false;
+    }
+    else
+    {
+        qDebug() << "not processing";
+    }
+}
+
+void VideoReceiver::onPlayCvProcess()
+{
+    if (!_cvRunning)
+    {
+        startCV();
+    }
+
+    if (!_cvProcessing)
+    {
+        _cvProcessing = true;
+    }
+    else
+    {
+        qDebug() << "already processing";
+    }
 }

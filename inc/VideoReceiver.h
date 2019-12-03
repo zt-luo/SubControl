@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QObject>
 #include <QtGlobal>
 #include <QRunnable>
@@ -12,6 +14,8 @@
 #include <gst/app/gstappsink.h>
 
 #include <opencv2/opencv.hpp>
+
+#include "CvRunner.h"
 
 class VideoReceiver : public QObject
 {
@@ -58,9 +62,11 @@ private:
     bool _recording;
     bool _recStoping;
 
+    bool _cvProcessing;
+
 public:
     CvElement *_cvElement;
-    
+
     bool _cvRunning;
     bool _cvStoping;
 
@@ -68,14 +74,31 @@ private:
     bool _verticalFlip;
     bool _mouseOverRecordingButton;
 
+    // video info
+    int _videoWidth;
+    int _videoHeight;
+    int _videoSize;
+
+    // video data
+    char *_videoDataRaw;
+    GstMapInfo *_videoMap;
+    GstBuffer *_videoBuffer;
+
+    CvRunner *_cvRunner;
+
     static gboolean _onBusMessage(GstBus *bus, GstMessage *message, gpointer data);
     static GstPadProbeReturn _unlinkCallBack(GstPad *pad, GstPadProbeInfo *info, gpointer data);
     static GstPadProbeReturn _keyframeWatch(GstPad *pad, GstPadProbeInfo *info, gpointer data);
     static gboolean newSample(GstAppSink *appsink, gpointer udata);
     static gboolean cvEOS(GstAppSink *appsink, gpointer udata);
 
+    bool startCV();
+    void stopCV();
+
 private slots:
     void onPipelineEOS();
+    void onPauseCvProcess();
+    void onPlayCvProcess();
 
 public:
     Q_PROPERTY(bool recording
@@ -98,11 +121,11 @@ public:
     bool startRecording();
     void stopRecording();
     void setRecordingHightlight(bool hightlight);
-    bool startCV();
-    void stopCV();
 
 signals:
     void onRecordingChanged();
     void onMouseOverRecordingButtonChanged();
     void pipelineEOS();
+    void pauseCvProcess();
+    void playCvProcess();
 };

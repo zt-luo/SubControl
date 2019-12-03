@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QObject>
 #include <QtGlobal>
 #include <QRunnable>
@@ -5,13 +7,25 @@
 
 #include <opencv2/opencv.hpp>
 
+using namespace cv;
+
 class CvRunner : public QObject
 {
     Q_OBJECT
 private:
-    cv::Mat frame;
+    int _width;
+    int _height;
+    Mat _srcFrame;
+    Mat _destFrame;
+
+    void imShowConfig();
+    void imShow(Mat *frame = nullptr);
 
 public:
-    CvRunner(QObject *parent = nullptr);
+    CvRunner(int width, int height, QObject *parent = nullptr);
     ~CvRunner();
+
+    void redBall();
+
+    static void process(char *data, CvRunner *cvRunner);
 };

@@ -16,12 +16,15 @@
 #include "chart.h"
 #include "videowindow.h"
 #include "VideoReceiver.h"
+#include "CvRunner.h"
 
-namespace AS {
+namespace AS
+{
 #include "./ardusub_api/api/inc/ardusub_api.h"
 }
 
-namespace Ui {
+namespace Ui
+{
 class MainWindow;
 }
 
@@ -30,6 +33,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+    CvRunner *cvRunner;
+
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void setChartsSize();
@@ -200,7 +205,7 @@ private:
     QHash<QString, float> namedFloatHash;
     QHash<QString, int> activeVehicleHash;
 
-    void resizeEvent(QResizeEvent* event);
+    void resizeEvent(QResizeEvent *event);
 
     void setupToolBars();
 
@@ -211,7 +216,7 @@ private:
     void setupVideo();
 
     void setupJoystick();
-    void connectJoystickSlots(bool b, QGamepad* m_joystick);
+    void connectJoystickSlots(bool b, QGamepad *m_joystick);
 
     void setupConfigView();
 
