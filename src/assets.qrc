@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/icon"/>
+    <qresource prefix="/">
+        <file>../assets/icon/analysis.svg</file>
+        <file>../assets/icon/control.svg</file>
+        <file>../assets/icon/dive.png</file>
+        <file>../assets/icon/joystick_black.svg</file>
+        <file>../assets/icon/joystick_red.svg</file>
+        <file>../assets/icon/lock.png</file>
+        <file>../assets/icon/lock_close.png</file>
+        <file>../assets/icon/lock_open.png</file>
+        <file>../assets/icon/log.png</file>
+        <file>../assets/icon/main_icon.svg</file>
+        <file>../assets/icon/menu.svg</file>
+        <file>../assets/icon/setting.svg</file>
+        <file>../assets/icon/thruster.png</file>
+        <file>../assets/icon/video.svg</file>
+        <file>../assets/icon/video2.svg</file>
+        <file>../assets/icon/monitor.svg</file>
+        <file>../assets/icon/camera.svg</file>
+        <file>../assets/icon/battery.svg</file>
+        <file>../assets/picture/background.jpg</file>
+        <file>../assets/video.qml</file>
+    </qresource>
+</RCC>
