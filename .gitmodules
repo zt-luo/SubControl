@@ -1,6 +1,4 @@
 [submodule "ardusub_api"]
 	path = ardusub_api
-	url = git@github.com:zt-luo/ardusub_api.git
-[submodule "vlc-qt"]
-	path = vlc-qt
-	url = git@github.com:zt-luo/vlc-qt.git
+	url = https://github.com/zt-luo/ardusub_api.git
+	
