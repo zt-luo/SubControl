@@ -6,7 +6,6 @@
 
 #include <iostream>
 
-
 void MainWindow::setupTimer()
 {
     QObject::connect(&vehicleDataUpdateTimer, &QTimer::timeout, this, &MainWindow::updateVehicleData);
@@ -15,11 +14,11 @@ void MainWindow::setupTimer()
 
     QObject::connect(&closeControlTimer, &QTimer::timeout, this, &MainWindow::closeControl);
     closeControlTimer.setInterval(50);
-//    depthPidTimer.start();
+    // depthPidTimer.start();
 
     QObject::connect(&statusTexTimer, &QTimer::timeout, this, &MainWindow::fetchStatusTex);
     statusTexTimer.setInterval(100);
-//    statusTexTimer.start();
+    // statusTexTimer.start();
 
     QObject::connect(&namedValueTimer, &QTimer::timeout, this, &MainWindow::updateNamedValue);
     namedValueTimer.setInterval(50);
@@ -34,7 +33,7 @@ void MainWindow::setupTimer()
 
     QObject::connect(&thrustersTestTimer, &QTimer::timeout, this, &MainWindow::thrustersTest);
     thrustersTestTimer.setInterval(50);
-//    thrustersTestTimer.start();
+    // thrustersTestTimer.start();
 
     QObject::connect(&countScreenTimer, &QTimer::timeout, this, &MainWindow::countScreens);
     countScreenTimer.setInterval(500);
@@ -64,7 +63,7 @@ void MainWindow::vehicleCheck()
             // vehicleComboBox index
             int index = activeVehicleHash.count() + 1;
 
-            if(iter == activeVehicleHash.end())
+            if (iter == activeVehicleHash.end())
             {
                 // new
                 activeVehicleHash.insert(vehicleID, index);
@@ -85,7 +84,7 @@ void MainWindow::vehicleCheck()
         }
         else
         {
-            if(iter != activeVehicleHash.end())
+            if (iter != activeVehicleHash.end())
             {
                 activeVehicleHash.remove(vehicleID);
                 vehicleComboBox->removeItem(iter.value());
@@ -132,8 +131,8 @@ void MainWindow::fetchStatusTex()
     QString out_str;
     if (nullptr != statustxt)
     {
-        QDateTime current_date_time =QDateTime::currentDateTime();
-        QString current_time =current_date_time.toString("[hh:mm:ss.zzz] ");
+        QDateTime current_date_time = QDateTime::currentDateTime();
+        QString current_time = current_date_time.toString("[hh:mm:ss.zzz] ");
         out_str.append(current_time);
         out_str.append(severity_tex[statustxt->severity]);
         out_str.append(QString(" - %1").arg(statustxt->text));
@@ -160,7 +159,7 @@ void MainWindow::updateChart()
     float yaw = 0, roll = 0, pitch = 0, depth = 0;
     static int64_t last_time_us, last_d_time_us;
     int64_t time_us = 0, d_time_us = 0;
-    if(0 == AS::as_api_check_vehicle(currentVehicle))
+    if (0 == AS::as_api_check_vehicle(currentVehicle))
     {
         yaw = 0;
         roll = 0;
@@ -176,7 +175,7 @@ void MainWindow::updateChart()
         roll = vehicle_data->roll * degreePerRad;
         pitch = vehicle_data->pitch * degreePerRad;
         depth = vehicle_data->alt / 1000.0f;
-//        depth = - (vehicle_data->press_abs2 - 1000) / 100;
+        // depth = - (vehicle_data->press_abs2 - 1000) / 100;
         time_us = vehicle_data->monotonic_time;
     }
 
@@ -221,7 +220,7 @@ void MainWindow::updateAdiCompass()
         return;
     }
 
-    float yaw = 0, roll = 0, pitch = 0, depth =0;
+    float yaw = 0, roll = 0, pitch = 0, depth = 0;
 
     const float degreePerRad = 180.0f / 3.1415926f;
     yaw = vehicle_data->yaw * degreePerRad;
@@ -229,9 +228,12 @@ void MainWindow::updateAdiCompass()
     pitch = vehicle_data->pitch * degreePerRad;
     depth = vehicle_data->alt / 1000.0f;
 
-    ui->qADI->setData(roll, pitch);
-    ui->qCompass->setYaw(yaw);
-    ui->qCompass->setAlt(depth);
+    if (ui->stackedWidgetMain->currentIndex() == 0)
+    {
+        ui->qADI->setData(roll, pitch);
+        ui->qCompass->setYaw(yaw);
+        ui->qCompass->setAlt(depth);
+    }
 
     rollLabelValue->setNum(round(roll * 100) / 100);
     pitchLabelValue->setNum(round(pitch * 100) / 100);
@@ -246,7 +248,7 @@ void MainWindow::updateNamedValue()
         return;
     }
 
-    if(0 != AS::as_api_check_vehicle(currentVehicle))
+    if (0 != AS::as_api_check_vehicle(currentVehicle))
     {
         AS::mavlink_named_value_float_t *value_float;
 
@@ -257,7 +259,7 @@ void MainWindow::updateNamedValue()
             QHash<QString, float>::iterator iter;
             iter = namedFloatHash.find(value_float->name);
             // new key
-            if(iter == namedFloatHash.end())
+            if (iter == namedFloatHash.end())
             {
                 namedFloatHash.insert(value_float->name, value_float->value);
                 ui->comboBoxL1->addItem(value_float->name);
@@ -274,19 +276,19 @@ void MainWindow::updateNamedValue()
     QHash<QString, float>::iterator iter;
 
     iter = namedFloatHash.find(ui->comboBoxL1->currentText());
-    if(iter != namedFloatHash.end())
+    if (iter != namedFloatHash.end())
     {
         ui->line1->setText(QString("%1").arg(iter.value()));
     }
 
     iter = namedFloatHash.find(ui->comboBoxL2->currentText());
-    if(iter != namedFloatHash.end())
+    if (iter != namedFloatHash.end())
     {
         ui->line2->setText(QString("%1").arg(iter.value()));
     }
 
     iter = namedFloatHash.find(ui->comboBoxL3->currentText());
-    if(iter != namedFloatHash.end())
+    if (iter != namedFloatHash.end())
     {
         ui->line3->setText(QString("%1").arg(iter.value()));
     }
@@ -317,10 +319,7 @@ void MainWindow::updateVehicleData()
 
     updateChart();
 
-    if (ui->stackedWidgetMain->currentIndex() == 0)
-    {
-        updateAdiCompass();
-    }
+    updateAdiCompass();
 
     if (videoWindow->isHidden() != true)
     {
