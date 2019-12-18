@@ -168,7 +168,7 @@ void MainWindow::on_joystick_axisRightYChanged(double value)
     {
 //        qDebug() << "Right Y" << value;
 
-        manual_control.z = static_cast<int16_t>(value * 500 + 500 + 2);
+        manual_control.z = static_cast<int16_t>(value * 500 + 500 - 1);
     }
 }
 
