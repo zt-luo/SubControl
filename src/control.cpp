@@ -466,9 +466,9 @@ void MainWindow::manualControl()
     {
         AS::as_api_manual_control(manual_control.x, manual_control.y,
                                   manual_control.z, manual_control.r,
-                                  manual_control.buttons);
+                                  manual_control.buttons, currentVehicle);
 
-        qDebug() << manual_control.x << manual_control.y << manual_control.z << manual_control.r;
+        // qDebug() << "manual control:" << manual_control.x << manual_control.y << manual_control.z << manual_control.r;
     }
 }
 

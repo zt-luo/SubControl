@@ -200,7 +200,7 @@ private:
 
     AS::Vehicle_Data_t *vehicle_data;
 
-    uint16_t pwmOutput[8] = {1500};
+    uint16_t pwmOutput[8] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
     QHash<QString, float> namedFloatHash;
     QHash<QString, int> activeVehicleHash;

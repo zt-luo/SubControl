@@ -58,7 +58,8 @@ MainWindow::MainWindow(QWidget *parent)
     readSettings();
 
     //    std::string ip("192.168.2.");
-    std::string ip("serial port");
+    std::string ip("192.168.1.");
+    // std::string ip("serial port");
     AS::as_api_init(ip.c_str(), F_THREAD_NONE);
 
     setupTimer();
@@ -378,6 +379,13 @@ void MainWindow::on_armCheckBox_stateChanged(int state)
         ui->upperCloseControl->setEnabled(false);
         ui->checkBoxThrustersTest->setCheckState(Qt::Unchecked);
 
+        // set manual control value to zero
+        manual_control.x = 0;
+        manual_control.y = 0;
+        manual_control.z = 500;
+        manual_control.r = 0;
+        manual_control.buttons = 0;
+
         AS::as_api_vehicle_disarm(currentVehicle, 1);
     }
 
@@ -427,7 +435,7 @@ void MainWindow::on_modeComboBox_currentIndexChanged(int index)
 
 void MainWindow::on_vehicleComboBox_currentIndexChanged(const QString &index)
 {
-    //    qDebug() << index.toInt();
+    // qDebug() << index.toInt();
     currentVehicle = static_cast<uint8_t>(index.toInt());
 }
 

@@ -126,7 +126,7 @@ void MainWindow::on_joystick_axisLeftXChanged(double value)
     {
 //        qDebug() << "Left X" << value;
 
-        manual_control.y = static_cast<int16_t>(value * 500);
+        manual_control.y = static_cast<int16_t>(value * 500 - 1);
     }
 }
 
@@ -140,7 +140,7 @@ void MainWindow::on_joystick_axisLeftYChanged(double value)
     {
 //        qDebug() << "Left Y" << value;
 
-        manual_control.x = static_cast<int16_t>(value * 500);
+        manual_control.x = static_cast<int16_t>(value * 500 + 1);
     }
 }
 
@@ -154,7 +154,7 @@ void MainWindow::on_joystick_axisRightXChanged(double value)
     {
 //        qDebug() << "Right X" << value;
 
-        manual_control.r = static_cast<int16_t>(value * 500);
+        manual_control.r = static_cast<int16_t>(value * 500 - 1);
     }
 }
 
@@ -168,7 +168,7 @@ void MainWindow::on_joystick_axisRightYChanged(double value)
     {
 //        qDebug() << "Right Y" << value;
 
-        manual_control.z = static_cast<int16_t>(value * 500 + 500);
+        manual_control.z = static_cast<int16_t>(value * 500 + 500 + 2);
     }
 }
 
