@@ -165,6 +165,16 @@ void MainWindow::closeControl()
 
         yaw_err = yaw_expected - yaw_now;
 
+        if (yaw_err > 180)
+        {
+            yaw_err -= 360;
+        }
+        
+        if (yaw_err < -180)
+        {
+            yaw_err += 360;
+        }
+
         // P_term
         P_term = kP * yaw_err;
 
@@ -248,7 +258,7 @@ void MainWindow::closeControl()
         static double I_term;
         double D_term = 0;
 
-        double pitch_err = 0; // declare the depth error
+        double pitch_err = 0; // declare the pitch error
         double pitch_vel = 0; // declare the derivative term for z
 
         pitch_err = pitch_expected - pitch_now;
@@ -303,6 +313,10 @@ void MainWindow::closeControl()
         {
             pitch_pwm_out = pwm_limit;
         }
+
+        QString out_str;
+        ui->textLogInfo->append(out_str.sprintf("err:%f, P:%f, I:%f, D:%f, out:%d.",
+                                                pitch_err, P_term, I_term, D_term, depth_pwm_out));
 
     } // pitch controller end
 
@@ -428,17 +442,17 @@ void MainWindow::closeControl()
         }
     } // y movement end
 
-    int motor_pwm[8] = {1500};
+    int motor_pwm[8] = {1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 
     motor_pwm[0] = 1500 - yaw_pwm_out + x_pwm_out - y_pwm_out;
     motor_pwm[1] = 1500 + yaw_pwm_out + x_pwm_out + y_pwm_out;
     motor_pwm[2] = 1500 + yaw_pwm_out + x_pwm_out - y_pwm_out;
     motor_pwm[3] = 1500 - yaw_pwm_out + x_pwm_out + y_pwm_out;
 
-    motor_pwm[4] = 1500 + depth_pwm_out + pitch_pwm_out + roll_pwm_out;
-    motor_pwm[5] = 1500 - depth_pwm_out - pitch_pwm_out + roll_pwm_out;
-    motor_pwm[6] = 1500 - depth_pwm_out + pitch_pwm_out - roll_pwm_out;
-    motor_pwm[7] = 1500 + depth_pwm_out - pitch_pwm_out - roll_pwm_out;
+    motor_pwm[4] = 1500 + depth_pwm_out - pitch_pwm_out + roll_pwm_out;
+    motor_pwm[5] = 1500 - depth_pwm_out + pitch_pwm_out + roll_pwm_out;
+    motor_pwm[6] = 1500 - depth_pwm_out - pitch_pwm_out - roll_pwm_out;
+    motor_pwm[7] = 1500 + depth_pwm_out + pitch_pwm_out - roll_pwm_out;
 
     AS::as_api_send_rc_channels_override(
                 currentVehicle, 1,
