@@ -10,6 +10,7 @@
 #include <QtGamepad/QGamepad>
 #include <QSettings>
 #include <QQuickWidget>
+#include <QMessageBox>
 
 #include <gst/gst.h>
 
@@ -181,6 +182,8 @@ private:
     QTimer manualControlTimer;
     QTimer thrustersTestTimer;
     QTimer countScreenTimer;
+
+    QMessageBox *armMessageBox;
 
     typedef struct
     {

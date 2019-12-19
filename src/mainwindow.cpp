@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_depthChart(new DepthChart),
       m_depthScene(new QGraphicsScene),
       m_joystick(nullptr),
+      armMessageBox(new QMessageBox(this)),
       currentVehicle(0),
       videoOk(false),
       videoReceiver(new VideoReceiver(this, true)),
@@ -31,6 +32,13 @@ MainWindow::MainWindow(QWidget *parent)
     QCoreApplication::setOrganizationName("ARMs of HUST");
     QCoreApplication::setOrganizationDomain("https://github.com/hust-arms");
     QCoreApplication::setApplicationName("SubControl");
+
+    armMessageBox->setWindowTitle("Arm vehicle");
+    armMessageBox->setText("Do you want to ARM vehicle?");
+    armMessageBox->setIcon(QMessageBox::Question);
+    armMessageBox->addButton(QMessageBox::No);
+    armMessageBox->addButton(QMessageBox::Yes);
+    armMessageBox->setDefaultButton(QMessageBox::Yes);
 
     manual_control.x = 0;
     manual_control.y = 0;
@@ -351,18 +359,17 @@ void MainWindow::on_armCheckBox_stateChanged(int state)
         return;
     }
 
+    if (armCheckBox->checkState() == Qt::Checked)
+    {
+        return;
+    }
+
     QObject::disconnect(armCheckBox, &QCheckBox::stateChanged,
                         this, &MainWindow::on_armCheckBox_stateChanged);
 
     if (state == Qt::Checked)
     {
-        armCheckBox->setCheckState(Qt::Unchecked);
-        QMessageBox::StandardButton ret =
-            QMessageBox::question(this,
-                                  "Arm vehicle",
-                                  "Do you want to ARM vehicle?",
-                                  QMessageBox::Yes | QMessageBox::No,
-                                  QMessageBox::Yes);
+        QMessageBox::StandardButton ret = (QMessageBox::StandardButton)armMessageBox->exec();
         if (ret == QMessageBox::Yes)
         {
             armCheckBox->setCheckState(Qt::Checked);

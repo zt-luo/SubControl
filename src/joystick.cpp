@@ -6,7 +6,6 @@
 
 #include <iostream>
 
-
 void MainWindow::setupJoystick()
 {
     joystickManager = QGamepadManager::instance();
@@ -31,7 +30,7 @@ void MainWindow::setupJoystick()
     }
 }
 
-void MainWindow::connectJoystickSlots(bool b, QGamepad* m_joystick)
+void MainWindow::connectJoystickSlots(bool b, QGamepad *m_joystick)
 {
     if (b)
     {
@@ -90,16 +89,16 @@ void MainWindow::connectJoystickSlots(bool b, QGamepad* m_joystick)
                          &MainWindow::on_joystick_buttonDownChanged);
 
         QObject::connect(m_joystick, &QGamepad::buttonLeftChanged, this,
-                &MainWindow::on_joystick_buttonLeftChanged);
+                         &MainWindow::on_joystick_buttonLeftChanged);
 
         QObject::connect(m_joystick, &QGamepad::buttonRightChanged, this,
                          &MainWindow::on_joystick_buttonRightChanged);
 
-        QObject::connect(m_joystick, &QGamepad::buttonGuideChanged, this, [](bool pressed){
+        QObject::connect(m_joystick, &QGamepad::buttonGuideChanged, this, [](bool pressed) {
             qDebug() << "Button Guide" << pressed;
         });
 
-        QObject::connect(m_joystick, &QGamepad::buttonCenterChanged, this, [](bool pressed){
+        QObject::connect(m_joystick, &QGamepad::buttonCenterChanged, this, [](bool pressed) {
             qDebug() << "Button Center" << pressed;
         });
     }
@@ -108,7 +107,6 @@ void MainWindow::connectJoystickSlots(bool b, QGamepad* m_joystick)
         m_joystick->disconnect();
     }
 }
-
 
 void MainWindow::on_actionJoystick_triggered()
 {
@@ -124,7 +122,7 @@ void MainWindow::on_joystick_axisLeftXChanged(double value)
     }
     else
     {
-//        qDebug() << "Left X" << value;
+        //        qDebug() << "Left X" << value;
 
         manual_control.y = static_cast<int16_t>(value * 500 - 1);
     }
@@ -138,7 +136,7 @@ void MainWindow::on_joystick_axisLeftYChanged(double value)
     }
     else
     {
-//        qDebug() << "Left Y" << value;
+        //        qDebug() << "Left Y" << value;
 
         manual_control.x = static_cast<int16_t>(value * 500 + 1);
     }
@@ -152,7 +150,7 @@ void MainWindow::on_joystick_axisRightXChanged(double value)
     }
     else
     {
-//        qDebug() << "Right X" << value;
+        //        qDebug() << "Right X" << value;
 
         manual_control.r = static_cast<int16_t>(value * 500 - 1);
     }
@@ -166,7 +164,7 @@ void MainWindow::on_joystick_axisRightYChanged(double value)
     }
     else
     {
-//        qDebug() << "Right Y" << value;
+        //        qDebug() << "Right Y" << value;
 
         manual_control.z = static_cast<int16_t>(value * 500 + 500 - 1);
     }
@@ -332,6 +330,15 @@ void MainWindow::on_joystick_buttonSelectChanged(bool pressed)
     {
         ui->bBack->setEnabled(false);
         ui->bBack->setStyleSheet("color: white; background-color: darkGray;");
+
+        if (armMessageBox->isActiveWindow())
+        {
+            armMessageBox->done(QMessageBox::No);
+        }
+        else
+        {
+            armCheckBox->setChecked(false);
+        }
     }
     else
     {
@@ -388,6 +395,14 @@ void MainWindow::on_joystick_buttonStartChanged(bool pressed)
     {
         ui->bStart->setEnabled(false);
         ui->bStart->setStyleSheet("color: white; background-color: darkGray;");
+        if (armMessageBox->isActiveWindow())
+        {
+            armMessageBox->done(QMessageBox::Yes);
+        }
+        else
+        {
+            emit armCheckBox->stateChanged(2);
+        }
     }
     else
     {
