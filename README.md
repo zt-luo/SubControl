@@ -15,27 +15,12 @@ based on [ardusub_api](https://github.com/zt-luo/ardusub_api) project.
 ### Linux
 
 ```shell
-git clone https://github.com/zt-luo/SubControl.git
-git submodule init
-git submodule update
+git clone https://github.com/zt-luo/SubControl.git SubControl --recursive 
 
-cd ardusub_api
+cd SubControl
 mkdir build
 cd build
 cmake ..
-make
-
-cd ../../vlc-qt
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-make
-sudo make install
-
-cd ../..
-mkdir build
-cd build
-qmake ../SubControl.pro
 make
 ```
 
