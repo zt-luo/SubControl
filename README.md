@@ -39,6 +39,9 @@ qmake ../SubControl.pro
 make
 ```
 
+### Windows
+
+not supported yet.
 
 
 ## LOC
