@@ -46,6 +46,24 @@ MainWindow::MainWindow(QWidget *parent)
     manual_control.r = 0;
     manual_control.buttons = 0;
 
+    pressedKey.W = false;
+    pressedKey.S = false;
+    pressedKey.A = false;
+    pressedKey.D = false;
+    pressedKey.Up = false;
+    pressedKey.Down = false;
+    pressedKey.Left = false;
+    pressedKey.Down = false;
+
+    keyControlValue.forward = 100;
+    keyControlValue.backward = -100;
+    keyControlValue.leftward = 100;
+    keyControlValue.rightward = -100;
+    keyControlValue.upward = 600;
+    keyControlValue.downward = 400;
+    keyControlValue.turnLeft = 100;
+    keyControlValue.turnRight = -100;
+
     // yawRoll chart
     // m_yawChart->setTitle("Yaw/degree");
     m_yawRollScene->addItem(m_yawRollChart);
@@ -288,6 +306,10 @@ void MainWindow::writeSettings()
     settings.setValue("ADI", ui->checkBoxADI->checkState());
     settings.setValue("compass", ui->checkBoxCompass->checkState());
     settings.endGroup();
+
+    settings.beginGroup("General/Others");
+    settings.setValue("keyboard_control", ui->checkBoxKeyboardControl->checkState());
+    settings.endGroup();
 }
 
 void MainWindow::readSettings()
@@ -307,6 +329,11 @@ void MainWindow::readSettings()
         static_cast<Qt::CheckState>(settings.value("ADI", 2).toInt()));
     ui->checkBoxCompass->setCheckState(
         static_cast<Qt::CheckState>(settings.value("compass", 2).toInt()));
+    settings.endGroup();
+
+    settings.beginGroup("General/Others");
+    ui->checkBoxKeyboardControl->setCheckState(
+        static_cast<Qt::CheckState>(settings.value("keyboard_control", 2).toInt()));
     settings.endGroup();
 }
 
@@ -577,11 +604,16 @@ void MainWindow::on_stackedWidgetMain_currentChanged(int arg1)
 
 void MainWindow::on_connectedGamepadsChanged()
 {
-    qDebug() << "on_connectedGamepadsChanged";
+    // qDebug() << "on_connectedGamepadsChanged";
+
+    if (joystickManager == nullptr)
+    {
+        return;
+    }
 
     QList<int> joysticks = joystickManager->connectedGamepads();
 
-    if (joysticks.isEmpty())
+    if (joysticks.isEmpty() || ui->checkBoxKeyboardControl->checkState() == Qt::Checked)
     {
         if (m_joystick != nullptr)
         {
@@ -998,6 +1030,11 @@ void MainWindow::on_checkBoxVideoLink_stateChanged(int arg1)
     }
 }
 
+void MainWindow::on_checkBoxKeyboardControl_stateChanged(int arg1)
+{
+    on_connectedGamepadsChanged();
+}
+
 void MainWindow::on_upperControlButton_clicked()
 {
     ui->stackedWidgetMain->setCurrentIndex(1);
@@ -1080,6 +1117,214 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             videoReceiver->stopRecording();
         }
     }
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->isAutoRepeat())
+    {
+        return;
+    }
+
+    if (ui->checkBoxKeyboardControl->checkState() == Qt::Unchecked)
+    {
+        return;
+    }
+
+    if (ui->stackedWidgetMain->currentIndex() != 0)
+    {
+        return;
+    }
+
+    if (event->key() == Qt::Key_W)
+    {
+        qDebug() << "You Pressed Key W";
+        pressedKey.W = true;
+        manual_control.x = keyControlValue.forward;
+    }
+    else if (event->key() == Qt::Key_S)
+    {
+        qDebug() << "You Pressed Key S";
+        pressedKey.S = true;
+        manual_control.x = keyControlValue.backward;
+    }
+    else if (event->key() == Qt::Key_A)
+    {
+        qDebug() << "You Pressed Key A";
+        pressedKey.A = true;
+        manual_control.y = keyControlValue.leftward;
+    }
+    else if (event->key() == Qt::Key_D)
+    {
+        qDebug() << "You Pressed Key D";
+        pressedKey.D = true;
+        manual_control.y = keyControlValue.rightward;
+    }
+    else if (event->key() == Qt::Key_Up)
+    {
+        qDebug() << "You Pressed Key Up";
+        pressedKey.Up = true;
+        manual_control.z = keyControlValue.upward;
+    }
+    else if (event->key() == Qt::Key_Down)
+    {
+        qDebug() << "You Pressed Key Down";
+        pressedKey.Down = true;
+        manual_control.z = keyControlValue.downward;
+    }
+    else if (event->key() == Qt::Key_Left)
+    {
+        qDebug() << "You Pressed Key Left";
+        pressedKey.Left = true;
+        manual_control.r = keyControlValue.turnLeft;
+    }
+    else if (event->key() == Qt::Key_Right)
+    {
+        qDebug() << "You Pressed Key Right";
+        pressedKey.Right = true;
+        manual_control.r = keyControlValue.turnRight;
+    }
+    else
+    {
+        qDebug() << "You Pressed NOT supported Key";
+    }
+
+    qDebug() << "x: " << manual_control.x;
+    qDebug() << "y: " << manual_control.y;
+    qDebug() << "z: " << manual_control.z;
+    qDebug() << "r: " << manual_control.r;
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if (event->isAutoRepeat())
+    {
+        return;
+    }
+
+    if (ui->checkBoxKeyboardControl->checkState() == Qt::Unchecked)
+    {
+        return;
+    }
+
+    if (ui->stackedWidgetMain->currentIndex() != 0)
+    {
+        return;
+    }
+
+    if (event->key() == Qt::Key_W)
+    {
+        qDebug() << "You Released Key W";
+        if (pressedKey.S)
+        {
+            manual_control.x = keyControlValue.backward;
+        }
+        else
+        {
+            manual_control.x = 0;
+        }
+        pressedKey.W = false;
+    }
+    else if (event->key() == Qt::Key_S)
+    {
+        qDebug() << "You Released Key S";
+        if (pressedKey.W)
+        {
+            manual_control.x = keyControlValue.forward;
+        }
+        else
+        {
+            manual_control.x = 0;
+        }
+        pressedKey.S = false;
+    }
+    else if (event->key() == Qt::Key_A)
+    {
+        qDebug() << "You Released Key A";
+        if (pressedKey.D)
+        {
+            manual_control.y = keyControlValue.rightward;
+        }
+        else
+        {
+            manual_control.y = 0;
+        }
+        pressedKey.A = false;
+    }
+    else if (event->key() == Qt::Key_D)
+    {
+        qDebug() << "You Released Key D";
+        if (pressedKey.A)
+        {
+            manual_control.y = keyControlValue.leftward;
+        }
+        else
+        {
+            manual_control.y = 0;
+        }
+        pressedKey.D = false;
+    }
+    else if (event->key() == Qt::Key_Up)
+    {
+        qDebug() << "You Released Key Up";
+        if (pressedKey.Down)
+        {
+            manual_control.z = keyControlValue.downward;
+        }
+        else
+        {
+            manual_control.z = 500;
+        }
+        pressedKey.Up = false;
+    }
+    else if (event->key() == Qt::Key_Down)
+    {
+        qDebug() << "You Released Key Down";
+        if (pressedKey.Up)
+        {
+            manual_control.z = keyControlValue.upward;
+        }
+        else
+        {
+            manual_control.z = 500;
+        }
+        pressedKey.Down = false;
+    }
+    else if (event->key() == Qt::Key_Left)
+    {
+        qDebug() << "You Released Key Left";
+        if (pressedKey.Right)
+        {
+            manual_control.r = keyControlValue.turnRight;
+        }
+        else
+        {
+            manual_control.r = 0;
+        }
+        pressedKey.Left = false;
+    }
+    else if (event->key() == Qt::Key_Right)
+    {
+        qDebug() << "You Released Key Right";
+        if (pressedKey.Left)
+        {
+            manual_control.r = keyControlValue.turnRight;
+        }
+        else
+        {
+            manual_control.r = 0;
+        }
+        pressedKey.Right = false;
+    }
+    else
+    {
+        qDebug() << "You Released NOT supported Key";
+    }
+
+    qDebug() << "x: " << manual_control.x;
+    qDebug() << "y: " << manual_control.y;
+    qDebug() << "z: " << manual_control.z;
+    qDebug() << "r: " << manual_control.r;
 }
 
 bool MainWindow::enterRecordingButton(QPoint postion)

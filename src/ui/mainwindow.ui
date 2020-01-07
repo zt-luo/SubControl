@@ -1845,6 +1845,35 @@
                <string>Stop CV</string>
               </property>
              </widget>
+             <widget class="QCheckBox" name="checkBoxKeyboardControl">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>190</y>
+                <width>131</width>
+                <height>21</height>
+               </rect>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use keyboard to control the vehicle. &lt;/p&gt;&lt;p&gt;NOTE: this will diable joystick control!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Keyboard Control</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_35">
+              <property name="geometry">
+               <rect>
+                <x>20</x>
+                <y>170</y>
+                <width>91</width>
+                <height>16</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Others:</string>
+              </property>
+             </widget>
             </widget>
             <widget class="QWidget" name="stackedWidgetConfigJoystick">
              <widget class="QLabel" name="label_2">

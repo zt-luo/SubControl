@@ -133,6 +133,8 @@ private slots:
 
     void on_checkBoxVideoLink_stateChanged(int arg1);
 
+    void on_checkBoxKeyboardControl_stateChanged(int arg1);
+
     void on_upperControlButton_clicked();
 
     void on_actionAdvanceMode_triggered(bool arg1);
@@ -196,6 +198,34 @@ private:
 
     manual_control_t manual_control;
 
+    typedef struct
+    {
+        bool W = false;
+        bool S;
+        bool A;
+        bool D;
+        bool Up;
+        bool Down;
+        bool Left;
+        bool Right;
+    } pressedKey_t;
+
+    pressedKey_t pressedKey;
+
+    typedef struct
+    {
+        int16_t forward;
+        int16_t backward;
+        int16_t leftward;
+        int16_t rightward;
+        int16_t upward;
+        int16_t downward;
+        int16_t turnLeft;
+        int16_t turnRight;
+    } keyControlValue_t;
+
+    keyControlValue_t keyControlValue;
+
     uint8_t currentVehicle;
     bool videoOk;
 
@@ -243,6 +273,8 @@ private:
     void closeEvent(QCloseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
+    void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
 
 signals:
     void updateVehicleDataSignal(AS::Vehicle_Data_t *vehicle_data);
