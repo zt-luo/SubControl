@@ -14,6 +14,9 @@ based on [ardusub_api](https://github.com/zt-luo/ardusub_api) project.
 
 ### Linux
 
+Dependencies:
+QT5, OpenCV, glib-2.0, gstreamer-1.0, libserialport, sqlite3
+
 ```shell
 git clone https://github.com/zt-luo/SubControl.git SubControl --recursive 
 
