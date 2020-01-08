@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_pitchScene(new QGraphicsScene),
       m_depthChart(new DepthChart),
       m_depthScene(new QGraphicsScene),
+      joystickManager(nullptr),
       m_joystick(nullptr),
       armMessageBox(new QMessageBox(this)),
       currentVehicle(0),
@@ -302,7 +303,7 @@ void MainWindow::writeSettings()
 
     settings.beginGroup("General/Video");
     settings.setValue("enable", ui->checkBoxVideoLink->checkState());
-    settings.setValue("link", ui->lineEditVideoLink->text());
+    settings.setValue("port", ui->lineEditVideoLink->text());
     settings.setValue("ADI", ui->checkBoxADI->checkState());
     settings.setValue("compass", ui->checkBoxCompass->checkState());
     settings.endGroup();
@@ -324,7 +325,7 @@ void MainWindow::readSettings()
     ui->checkBoxVideoLink->setCheckState(
         static_cast<Qt::CheckState>(settings.value("enable", 2).toInt()));
     ui->lineEditVideoLink->setText(
-        settings.value("link", "http://192.168.2.2:2770/vlc.sdp").toString());
+        settings.value("port", "5600").toString());
     ui->checkBoxADI->setCheckState(
         static_cast<Qt::CheckState>(settings.value("ADI", 2).toInt()));
     ui->checkBoxCompass->setCheckState(
@@ -333,7 +334,7 @@ void MainWindow::readSettings()
 
     settings.beginGroup("General/Others");
     ui->checkBoxKeyboardControl->setCheckState(
-        static_cast<Qt::CheckState>(settings.value("keyboard_control", 2).toInt()));
+        static_cast<Qt::CheckState>(settings.value("keyboard_control", 0).toInt()));
     settings.endGroup();
 }
 
