@@ -387,11 +387,6 @@ void MainWindow::on_armCheckBox_stateChanged(int state)
         return;
     }
 
-    if (armCheckBox->checkState() == Qt::Checked)
-    {
-        return;
-    }
-
     QObject::disconnect(armCheckBox, &QCheckBox::stateChanged,
                         this, &MainWindow::on_armCheckBox_stateChanged);
 

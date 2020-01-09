@@ -395,6 +395,12 @@ void MainWindow::on_joystick_buttonStartChanged(bool pressed)
     {
         ui->bStart->setEnabled(false);
         ui->bStart->setStyleSheet("color: white; background-color: darkGray;");
+
+        if (armCheckBox->checkState() == Qt::Checked)
+        {
+            return;
+        }
+
         if (armMessageBox->isActiveWindow())
         {
             armMessageBox->done(QMessageBox::Yes);
