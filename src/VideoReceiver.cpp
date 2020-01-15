@@ -170,6 +170,19 @@ void VideoReceiver::start(QQuickWidget *quickWidget)
 
     if (_verticalFlip)
     {
+        // “video-direction” Video-orientation-method
+        /*
+        Video-orientation-method:
+        none (0) – Identity (no rotation)
+        clockwise (1) – Rotate clockwise 90 degrees
+        rotate-180 (2) – Rotate 180 degrees
+        counterclockwise (3) – Rotate counter-clockwise 90 degrees
+        horizontal-flip (4) – Flip horizontally
+        vertical-flip (5) – Flip vertically
+        upper-left-diagonal (6) – Flip across upper left/lower right diagonal
+        upper-right-diagonal (7) – Flip across upper right/lower left diagonal
+        automatic (8) – Select flip method based on image-orientation tag
+        */
         g_object_set(videoflip, "video-direction", 5, nullptr);
     }
 
