@@ -29,7 +29,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidgetMain">
         <property name="currentIndex">
-         <number>3</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="stackedWidgetVideo">
          <widget class="QCompass" name="qCompass" native="true">
@@ -114,7 +114,7 @@
             <item>
              <widget class="QGroupBox" name="groupBox">
               <property name="title">
-               <string>Upper close control</string>
+               <string>Upper closed-loop control</string>
               </property>
               <property name="flat">
                <bool>false</bool>
@@ -143,7 +143,7 @@
                      <bool>false</bool>
                     </property>
                     <property name="text">
-                     <string>Close control</string>
+                     <string>Closed-loop control</string>
                     </property>
                    </widget>
                   </item>
