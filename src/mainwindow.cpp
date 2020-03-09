@@ -227,6 +227,10 @@ void MainWindow::setupToolBars()
     rollLabelValue->setFixedWidth(50);
     depthLabelValue->setFixedWidth(50);
 
+    QWidget *spacer = new QWidget(this);
+    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    ui->statusToolBar->addWidget(spacer);
+
     ui->statusToolBar->addWidget(yawLabel);
     ui->statusToolBar->addWidget(yawLabelValue);
     ui->statusToolBar->addWidget(pitchLabel);
