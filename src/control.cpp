@@ -45,9 +45,11 @@ void MainWindow::closeControl()
     roll_now = vehicle_data->roll * degreePerRad;    // degree
 
     // depth controller start
+    static bool depthPidStart = true;
     if (!ui->depthPidCheckBox->checkState())
     {
         depth_pwm_out = 0;
+        depthPidStart = true;
     }
     else
     {
@@ -69,6 +71,11 @@ void MainWindow::closeControl()
 
         double P_term = 0;
         static double I_term;
+        if (depthPidStart)
+        {
+            I_term = 0;
+            depthPidStart = false;
+        }
         double D_term = 0;
 
         double depth_err = 0; // declare the depth error
@@ -134,9 +141,11 @@ void MainWindow::closeControl()
     } // depth controller end
 
     // yaw controller start
+    static bool yawPidStart = true;
     if (!ui->yawPidCheckBox->checkState())
     {
         yaw_pwm_out = 0;
+        yawPidStart = true;
     }
     else
     {
@@ -158,6 +167,11 @@ void MainWindow::closeControl()
 
         double P_term = 0;
         static double I_term;
+        if (yawPidStart)
+        {
+            I_term = 0;
+            yawPidStart = false;
+        }
         double D_term = 0;
 
         double yaw_err = 0; // declare the depth error
@@ -232,9 +246,11 @@ void MainWindow::closeControl()
     } // yaw controller end
 
     // pitch controller start
+    static bool pitchPidStart = true;
     if (!ui->pitchPidCheckBox->checkState())
     {
         pitch_pwm_out = 0;
+        pitchPidStart = true;
     }
     else
     {
@@ -256,6 +272,11 @@ void MainWindow::closeControl()
 
         double P_term = 0;
         static double I_term;
+        if (pitchPidStart)
+        {
+            I_term = 0;
+            pitchPidStart = false;
+        }
         double D_term = 0;
 
         double pitch_err = 0; // declare the pitch error
